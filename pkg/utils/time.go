@@ -200,4 +200,17 @@ func (tu *TimeUtils) CalculateLatencyPercentile(durations []time.Duration, perce
 	for i := 0; i < len(sorted)-1; i++ {
 		for j := i + 1; j < len(sorted); j++ {
 			if sorted[i] > sorted[j] {
-				sorted[i], sorted[j] = sorted[j], sorted[i
+				sorted[i], sorted[j] = sorted[j], sorted[i]
+			}
+		}
+	}
+	
+	index := percentile * float64(len(sorted)-1)
+	lower := int(index)
+	
+	if lower >= len(sorted) {
+		return sorted[len(sorted)-1]
+	}
+	
+	return sorted[lower]
+}
