@@ -1,1 +1,112 @@
-/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: relativistic-sdk
+  namespace: relativistic
+  labels:
+    app: relativistic-sdk
+    version: v1.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: relativistic-sdk
+  template:
+    metadata:
+      labels:
+        app: relativistic-sdk
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: relativistic-sdk
+        image: ixuxoinzo/relativistic-sdk:1.0.0
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: RELATIVISTIC_ENVIRONMENT
+          value: "production"
+        - name: RELATIVISTIC_SERVER_ADDRESS
+          value: ":8080"
+        - name: RELATIVISTIC_REDIS_ADDRESS
+          value: "redis-master.redis.svc.cluster.local:6379"
+        - name: RELATIVISTIC_DB_HOST
+          value: "postgresql.postgresql.svc.cluster.local"
+        - name: RELATIVISTIC_DB_PORT
+          value: "5432"
+        - name: RELATIVISTIC_DB_NAME
+          value: "relativistic"
+        - name: RELATIVISTIC_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: relativistic-secrets
+              key: database-username
+        - name: RELATIVISTIC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: relativistic-secrets
+              key: database-password
+        - name: RELATIVISTIC_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: relativistic-secrets
+              key: jwt-secret
+        - name: RELATIVISTIC_METRICS_ENABLED
+          value: "true"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health/ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+      imagePullSecrets:
+      - name: relativistic-registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: relativistic-sdk
+  namespace: relativistic
+  labels:
+    app: relativistic-sdk
+spec:
+  selector:
+    app: relativistic-sdk
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
