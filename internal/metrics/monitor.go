@@ -3,7 +3,8 @@ package metrics
 import (
 	"sync"
 	"time"
-  "fmt"
+    "fmt"
+
 	"go.uber.org/zap"
 )
 
