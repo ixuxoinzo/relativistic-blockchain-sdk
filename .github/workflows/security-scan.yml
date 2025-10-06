@@ -22,15 +22,15 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: go
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
 
   gosec:
     name: Go Security Check
@@ -66,6 +66,14 @@ jobs:
         go install golang.org/x/vuln/cmd/govulncheck@latest
         govulncheck ./...
 
+    - name: Upload dependency list
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-list
+        path: |
+          go.mod
+          go.sum
+
   sast:
     name: Static Application Security Testing
     runs-on: ubuntu-latest
@@ -94,7 +102,7 @@ jobs:
         output: 'trivy-results.sarif'
 
     - name: Upload Trivy results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
 
@@ -119,7 +127,13 @@ jobs:
 
     - name: Check licenses
       run: |
-        echo "License compliance check"
+        echo "Checking dependency licenses..."
         go mod download
-        go list -m all > dependencies.txt
+        go list -m all | head -50 > dependencies.txt
         echo "Dependencies listed in dependencies.txt"
+
+    - name: Upload dependencies
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependencies
+        path: dependencies.txt
