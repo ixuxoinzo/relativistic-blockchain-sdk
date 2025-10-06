@@ -1,0 +1,68 @@
+server:
+  address: ":8080"
+  environment: "development"
+  log_level: "debug"
+  cors_allowed_origins:
+    - "*"
+  shutdown_timeout: "30s"
+
+database:
+  host: "localhost"
+  port: 5432
+  name: "relativistic_dev"
+  username: "postgres"
+  password: "password"
+  ssl_mode: "disable"
+  max_connections: 20
+  max_idle_connections: 5
+  connection_timeout: "30s"
+
+cache:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 50
+  read_timeout: "3s"
+  write_timeout: "3s"
+
+security:
+  jwt_secret: "dev-secret-key-only-for-development"
+  jwt_expiry: "24h"
+  api_key: "dev-api-key-12345"
+  rate_limit: 10000
+  cors_enabled: true
+
+monitoring:
+  prometheus:
+    enabled: true
+    path: "/metrics"
+  health_check:
+    enabled: true
+    interval: "60s"
+  metrics_collection_interval: "30s"
+
+network:
+  node_registration:
+    auto_approve: true
+    max_nodes: 100
+  propagation:
+    max_calculation_time: "30s"
+    batch_size: 50
+  discovery:
+    enabled: true
+    interval: "120s"
+
+relativistic:
+  speed_of_light: 299792458
+  earth_radius: 6371000
+  max_interplanetary_distance: 400000000000
+  time_dilation_factor: 1.0
+  validation_confidence_threshold: 0.6
+
+logging:
+  level: "debug"
+  format: "text"
+  output: "stdout"
+  rotation:
+    enabled: false
