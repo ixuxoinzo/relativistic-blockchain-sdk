@@ -201,8 +201,5 @@ Apache 2.0 - See LICENSE file for details.
 
 Support
 
-· 📧 Email: support@relativistic.io
 · 🐛 Issues: GitHub Issues
-· 📚 Docs: https://docs.relativistic.io
-
 ```
