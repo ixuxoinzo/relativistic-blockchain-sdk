@@ -33,4 +33,45 @@ type HealthResponse struct {
 	Version   string            `json:"version"`
 	Timestamp time.Time         `json:"timestamp"`
 	Uptime    string            `json:"uptime"`
-	Components map[string
+	Components map[string]string `json:"components"`
+}
+
+type MetricsResponse struct {
+	Timestamp time.Time              `json:"timestamp"`
+	Metrics   map[string]interface{} `json:"metrics"`
+}
+
+type ValidationResponse struct {
+	Valid      bool          `json:"valid"`
+	Confidence float64       `json:"confidence"`
+	Reason     string        `json:"reason"`
+	Expected   time.Duration `json:"expected_delay"`
+	Actual     time.Duration `json:"actual_diff"`
+}
+
+type PropagationResponse struct {
+	Source  string                       `json:"source"`
+	Targets map[string]*PropagationResult `json:"targets"`
+}
+
+type NodeListResponse struct {
+	Nodes []*Node `json:"nodes"`
+	Total int     `json:"total"`
+}
+
+type ErrorResponse struct {
+	Error   string `json:"error"`
+	Code    string `json:"code"`
+	Details string `json:"details,omitempty"`
+}
+
+type SuccessResponse struct {
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+type BulkOperationResponse struct {
+	Processed int         `json:"processed"`
+	Failed    int         `json:"failed"`
+	Results   interface{} `json:"results,omitempty"`
+}
