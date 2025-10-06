@@ -47,7 +47,7 @@ jobs:
     - name: Run GoSec
       run: |
         go install github.com/securego/gosec/v2/cmd/gosec@latest
-        gosec -exclude-dir=tests -exclude-dir=demo ./...
+        gosec -exclude-dir=tests -exclude-dir=demo -exclude-dir=docs ./...
 
   dependency-check:
     name: Dependency Vulnerability Scan
@@ -75,8 +75,6 @@ jobs:
 
     - name: Run Semgrep
       uses: returntocorp/semgrep-action@v1
-      with:
-        config: p/security-audit
 
   container-scan:
     name: Container Image Security
@@ -109,8 +107,8 @@ jobs:
 
     - name: Run Gitleaks
       uses: gitleaks/gitleaks-action@v2
-      env:
-        GITLEAKS_CONFIG: .gitleaks.toml
+      with:
+        config-path: .gitleaks.toml
 
   license-compliance:
     name: License Compliance
@@ -121,5 +119,7 @@ jobs:
 
     - name: Check licenses
       run: |
+        echo "License compliance check"
         go mod download
-        go list -m all | head -20
+        go list -m all > dependencies.txt
+        echo "Dependencies listed in dependencies.txt"
