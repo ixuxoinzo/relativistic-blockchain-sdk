@@ -9,7 +9,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ixuxoinzo/relativistic-blockchain-sdk/internal/network"
+	"github.comcom/ixuxoinzo/relativistic-blockchain-sdk/internal/network"
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/utils"
 )
@@ -21,7 +21,7 @@ type RelativisticEngine struct {
 	config          *EngineConfig
 	cache           *sync.Map
 	mu              sync.RWMutex
-	metrics         *EngineMetrics
+	metrics         *types.EngineMetrics
 }
 
 type EngineConfig struct {
@@ -32,15 +32,6 @@ type EngineConfig struct {
 	CacheTTL              time.Duration
 	EnableMonitoring      bool
 	ValidationThreshold   float64
-}
-
-type EngineMetrics struct {
-	CalculationsTotal    int64
-	ValidationsTotal     int64
-	CacheHits           int64
-	CacheMisses         int64
-	ErrorsTotal         int64
-	mu                  sync.RWMutex
 }
 
 func NewRelativisticEngine(topology *network.TopologyManager, latency *network.LatencyMonitor, logger *zap.Logger) *RelativisticEngine {
@@ -58,15 +49,15 @@ func NewRelativisticEngine(topology *network.TopologyManager, latency *network.L
 			ValidationThreshold:   0.8,
 		},
 		cache:   &sync.Map{},
-		metrics: &EngineMetrics{},
+		metrics: &types.EngineMetrics{},
 	}
 }
 
 func (e *RelativisticEngine) CalculatePropagationDelay(nodeA, nodeB *types.Node) (time.Duration, error) {
 	startTime := time.Now()
-	e.metrics.mu.Lock()
+	e.metrics.Mu.Lock()
 	e.metrics.CalculationsTotal++
-	e.metrics.mu.Unlock()
+	e.metrics.Mu.Unlock()
 
 	defer func() {
 		e.logger.Debug("Propagation delay calculation completed",
@@ -79,21 +70,21 @@ func (e *RelativisticEngine) CalculatePropagationDelay(nodeA, nodeB *types.Node)
 	cacheKey := fmt.Sprintf("delay:%s:%s", nodeA.ID, nodeB.ID)
 	
 	if cached, found := e.cache.Load(cacheKey); found {
-		e.metrics.mu.Lock()
+		e.metrics.Mu.Lock()
 		e.metrics.CacheHits++
-		e.metrics.mu.Unlock()
+		e.metrics.Mu.Unlock()
 		return cached.(time.Duration), nil
 	}
 
-	e.metrics.mu.Lock()
+	e.metrics.Mu.Lock()
 	e.metrics.CacheMisses++
-	e.metrics.mu.Unlock()
+	e.metrics.Mu.Unlock()
 
 	distance, err := e.calculateGreatCircleDistance(nodeA.Position, nodeB.Position)
 	if err != nil {
-		e.metrics.mu.Lock()
+		e.metrics.Mu.Lock()
 		e.metrics.ErrorsTotal++
-		e.metrics.mu.Unlock()
+		e.metrics.Mu.Unlock()
 		return 0, fmt.Errorf("failed to calculate distance: %w", err)
 	}
 
@@ -140,9 +131,9 @@ func (e *RelativisticEngine) calculateGreatCircleDistance(pos1, pos2 types.Posit
 
 func (e *RelativisticEngine) ValidateTimestamp(ctx context.Context, blockTimestamp time.Time, nodePosition types.Position, originNode string) (bool, *types.ValidationResult) {
 	startTime := time.Now()
-	e.metrics.mu.Lock()
+	e.metrics.Mu.Lock()
 	e.metrics.ValidationsTotal++
-	e.metrics.mu.Unlock()
+	e.metrics.Mu.Unlock()
 
 	defer func() {
 		e.logger.Debug("Timestamp validation completed",
@@ -153,9 +144,9 @@ func (e *RelativisticEngine) ValidateTimestamp(ctx context.Context, blockTimesta
 
 	currentNode, err := e.topologyManager.GetNode(originNode)
 	if err != nil {
-		e.metrics.mu.Lock()
+		e.metrics.Mu.Lock()
 		e.metrics.ErrorsTotal++
-		e.metrics.mu.Unlock()
+		e.metrics.Mu.Unlock()
 		return false, &types.ValidationResult{
 			Valid:      false,
 			Reason:     fmt.Sprintf("Node not found: %s", originNode),
@@ -166,9 +157,9 @@ func (e *RelativisticEngine) ValidateTimestamp(ctx context.Context, blockTimesta
 
 	expectedDelay, err := e.CalculatePropagationDelay(currentNode, &types.Node{Position: nodePosition})
 	if err != nil {
-		e.metrics.mu.Lock()
+		e.metrics.Mu.Lock()
 		e.metrics.ErrorsTotal++
-		e.metrics.mu.Unlock()
+		e.metrics.Mu.Unlock()
 		return false, &types.ValidationResult{
 			Valid:      false,
 			Reason:     fmt.Sprintf("Delay calculation failed: %v", err),
@@ -226,21 +217,21 @@ func (e *RelativisticEngine) CalculateInterplanetaryDelay(planetA, planetB strin
 	cacheKey := fmt.Sprintf("interplanetary:%s:%s", planetA, planetB)
 	
 	if cached, found := e.cache.Load(cacheKey); found {
-		e.metrics.mu.Lock()
+		e.metrics.Mu.Lock()
 		e.metrics.CacheHits++
-		e.metrics.mu.Unlock()
+		e.metrics.Mu.Unlock()
 		return cached.(time.Duration), nil
 	}
 
-	e.metrics.mu.Lock()
+	e.metrics.Mu.Lock()
 	e.metrics.CacheMisses++
-	e.metrics.mu.Unlock()
+	e.metrics.Mu.Unlock()
 
 	distance, exists := types.PlanetaryDistances[planetA+"-"+planetB]
 	if !exists {
-		e.metrics.mu.Lock()
+		e.metrics.Mu.Lock()
 		e.metrics.ErrorsTotal++
-		e.metrics.mu.Unlock()
+		e.metrics.Mu.Unlock()
 		return 0, fmt.Errorf("planetary distance not found for %s-%s", planetA, planetB)
 	}
 
@@ -298,9 +289,9 @@ func (e *RelativisticEngine) BatchCalculateDelays(nodes []*types.Node) (map[stri
 	}
 
 	if len(errors) > 0 {
-		e.metrics.mu.Lock()
+		e.metrics.Mu.Lock()
 		e.metrics.ErrorsTotal += int64(len(errors))
-		e.metrics.mu.Unlock()
+		e.metrics.Mu.Unlock()
 		return results, fmt.Errorf("batch calculation completed with %d errors: %v", len(errors), errors)
 	}
 
@@ -327,13 +318,13 @@ func (e *RelativisticEngine) GetNetworkMetrics() *types.NetworkMetrics {
 		}
 	}
 
-	e.metrics.mu.RLock()
+	e.metrics.Mu.RLock()
 	metrics.EngineCalculations = e.metrics.CalculationsTotal
 	metrics.EngineValidations = e.metrics.ValidationsTotal
 	metrics.CacheHits = e.metrics.CacheHits
 	metrics.CacheMisses = e.metrics.CacheMisses
 	metrics.EngineErrors = e.metrics.ErrorsTotal
-	e.metrics.mu.RUnlock()
+	e.metrics.Mu.RUnlock()
 
 	return metrics
 }
@@ -419,15 +410,16 @@ func (e *RelativisticEngine) ClearCache() {
 	e.logger.Info("Cache cleared")
 }
 
-func (e *RelativisticEngine) GetEngineMetrics() *EngineMetrics {
-	e.metrics.mu.RLock()
-	defer e.metrics.mu.RUnlock()
+func (e *RelativisticEngine) GetEngineMetrics() *types.EngineMetrics {
+	e.metrics.Mu.RLock()
+	defer e.metrics.Mu.RUnlock()
 	
-	return &EngineMetrics{
+	metricsCopy := &types.EngineMetrics{
 		CalculationsTotal: e.metrics.CalculationsTotal,
 		ValidationsTotal:  e.metrics.ValidationsTotal,
-		CacheHits:        e.metrics.CacheHits,
-		CacheMisses:      e.metrics.CacheMisses,
-		ErrorsTotal:      e.metrics.ErrorsTotal,
+		CacheHits:         e.metrics.CacheHits,
+		CacheMisses:       e.metrics.CacheMisses,
+		ErrorsTotal:       e.metrics.ErrorsTotal,
 	}
+	return metricsCopy
 }
