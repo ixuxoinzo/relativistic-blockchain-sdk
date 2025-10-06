@@ -1,93 +1,117 @@
 package config
 
 import (
-	"fmt"
 	"time"
-
-	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	Metrics  MetricsConfig  `mapstructure:"metrics"`
-	Network  NetworkConfig  `mapstructure:"network"`
-	Security SecurityConfig `mapstructure:"security"`
+	Server   ServerConfig   `yaml:"server"`
+	Database DatabaseConfig `yaml:"database"`
+	Redis    RedisConfig    `yaml:"redis"`
+	Security SecurityConfig `yaml:"security"`
+	Metrics  MetricsConfig  `yaml:"metrics"`
+	Network  NetworkConfig  `yaml:"network"`
+	Logging  LoggingConfig  `yaml:"logging"`
 }
 
 type ServerConfig struct {
-	Address         string        `mapstructure:"address"`
-	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
-	EnableCORS      bool          `mapstructure:"enable_cors"`
+	Address         string        `yaml:"address"`
+	Environment     string        `yaml:"environment"`
+	ShutdownTimeout time.Duration `yaml:"shutdown_timeout"`
+	ReadTimeout     time.Duration `yaml:"read_timeout"`
+	WriteTimeout    time.Duration `yaml:"write_timeout"`
+}
+
+type DatabaseConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+	SSLMode  string `yaml:"ssl_mode"`
 }
 
 type RedisConfig struct {
-	Address  string `mapstructure:"address"`
-	Password string `mapstructure:"password"`
-	DB       int    `mapstructure:"db"`
-}
-
-type MetricsConfig struct {
-	Enabled    bool   `mapstructure:"enabled"`
-	Port       int    `mapstructure:"port"`
-	Path       string `mapstructure:"path"`
-}
-
-type NetworkConfig struct {
-	PropagationFactor float64       `mapstructure:"propagation_factor"`
-	SafetyFactor      float64       `mapstructure:"safety_factor"`
-	MaxAcceptableDelay time.Duration `mapstructure:"max_acceptable_delay"`
-	MonitoringInterval time.Duration `mapstructure:"monitoring_interval"`
+	Address  string `yaml:"address"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+	PoolSize int    `yaml:"pool_size"`
 }
 
 type SecurityConfig struct {
-	EnableTimestampValidation bool    `mapstructure:"enable_timestamp_validation"`
-	MaxConfidenceThreshold    float64 `mapstructure:"max_confidence_threshold"`
-	EnableNodeAuth            bool    `mapstructure:"enable_node_auth"`
+	JWTSecret     string        `yaml:"jwt_secret"`
+	TokenExpiry   time.Duration `yaml:"token_expiry"`
+	RateLimit     int           `yaml:"rate_limit"`
+	RateLimitWindow time.Duration `yaml:"rate_limit_window"`
+	CORSOrigins   []string      `yaml:"cors_origins"`
 }
 
-func Load() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("./config")
-	viper.AddConfigPath("/etc/relativistic-sdk/")
-
-	// Set defaults
-	setDefaults()
-
-	// Read config
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config: %w", err)
-	}
-
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
-	return &config, nil
+type MetricsConfig struct {
+	Enabled        bool          `yaml:"enabled"`
+	Port           int           `yaml:"port"`
+	Path           string        `yaml:"path"`
+	PushGateway    string        `yaml:"push_gateway"`
+	PushInterval   time.Duration `yaml:"push_interval"`
 }
 
-func setDefaults() {
-	viper.SetDefault("server.address", ":8080")
-	viper.SetDefault("server.shutdown_timeout", "30s")
-	viper.SetDefault("server.enable_cors", true)
+type NetworkConfig struct {
+	BootstrapNodes []string      `yaml:"bootstrap_nodes"`
+	PeerDiscovery  bool          `yaml:"peer_discovery"`
+	MaxPeers       int           `yaml:"max_peers"`
+	ListenAddress  string        `yaml:"listen_address"`
+	ExternalIP     string        `yaml:"external_ip"`
+}
 
-	viper.SetDefault("redis.address", "localhost:6379")
-	viper.SetDefault("redis.password", "")
-	viper.SetDefault("redis.db", 0)
+type LoggingConfig struct {
+	Level    string `yaml:"level"`
+	Format   string `yaml:"format"`
+	Output   string `yaml:"output"`
+	FilePath string `yaml:"file_path"`
+}
 
-	viper.SetDefault("metrics.enabled", true)
-	viper.SetDefault("metrics.port", 9090)
-	viper.SetDefault("metrics.path", "/metrics")
-
-	viper.SetDefault("network.propagation_factor", 1.5)
-	viper.SetDefault("network.safety_factor", 2.0)
-	viper.SetDefault("network.max_acceptable_delay", "30s")
-	viper.SetDefault("network.monitoring_interval", "60s")
-
-	viper.SetDefault("security.enable_timestamp_validation", true)
-	viper.SetDefault("security.max_confidence_threshold", 0.8)
-	viper.SetDefault("security.enable_node_auth", false)
+func DefaultConfig() *Config {
+	return &Config{
+		Server: ServerConfig{
+			Address:         ":8080",
+			Environment:     "development",
+			ShutdownTimeout: 30 * time.Second,
+			ReadTimeout:     15 * time.Second,
+			WriteTimeout:    15 * time.Second,
+		},
+		Database: DatabaseConfig{
+			Host:    "localhost",
+			Port:    5432,
+			SSLMode: "disable",
+		},
+		Redis: RedisConfig{
+			Address:  "localhost:6379",
+			PoolSize: 100,
+		},
+		Security: SecurityConfig{
+			TokenExpiry:     24 * time.Hour,
+			RateLimit:       100,
+			RateLimitWindow: time.Minute,
+			CORSOrigins:     []string{"*"},
+		},
+		Metrics: MetricsConfig{
+			Enabled:      true,
+			Port:         9090,
+			Path:         "/metrics",
+			PushInterval: 60 * time.Second,
+		},
+		Network: NetworkConfig{
+			BootstrapNodes: []string{
+				"bootstrap1.relativistic-sdk.com:8080",
+				"bootstrap2.relativistic-sdk.com:8080",
+			},
+			PeerDiscovery: true,
+			MaxPeers:      50,
+			ListenAddress: ":8080",
+		},
+		Logging: LoggingConfig{
+			Level:  "info",
+			Format: "json",
+			Output: "stdout",
+		},
+	}
 }
