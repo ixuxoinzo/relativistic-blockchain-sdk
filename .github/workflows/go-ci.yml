@@ -60,7 +60,7 @@ jobs:
         go tool cover -html=coverage.out -o coverage.html
 
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.out
         flags: unittests
@@ -76,7 +76,7 @@ jobs:
         go build -v -o relativisticd ./cmd/relativisticd
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: relativistic-binary
         path: relativisticd
