@@ -1,0 +1,26 @@
+title = "gitleaks config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+description = "Generic API Key"
+regex = '''(?i)(api_key|apikey|secret_key|secretkey)(.{0,20})?['\"]([0-9a-zA-Z]{16,45})['\"]'''
+tags = ["key", "API"]
+
+[[rules]]
+description = "Generic Secret"
+regex = '''(?i)(secret|password|passwd|pwd)(.{0,20})?['\"]([0-9a-zA-Z!@#$%^&*()_+\-={}|:;"'<>,.?/]{8,128})['\"]'''
+tags = ["secret", "password"]
+
+[[rules]]
+description = "JWT"
+regex = '''eyJ[a-zA-Z0-9]{10,}\.[a-zA-Z0-9]{10,}\.[a-zA-Z0-9_-]{10,}'''
+tags = ["jwt"]
+
+[[allowlist]]
+files = [
+    '''(.*?)(\.test|_test|test_|mock|demo)(\.go)?$''',
+    '''configs/config\.dev\.yaml$''',
+    '''\.env\.example$'''
+]
