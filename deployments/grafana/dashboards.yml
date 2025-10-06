@@ -1,0 +1,30 @@
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+
+dashboards:
+  - name: 'Relativistic SDK Overview'
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards/overview.json
+  - name: 'Network Metrics'
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards/network.json
+  - name: 'Consensus Metrics'
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards/consensus.json
+  - name: 'Node Performance'
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards/nodes.json
