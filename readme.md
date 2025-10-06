@@ -201,5 +201,5 @@ Apache 2.0 - See LICENSE file for details.
 
 Support
 
-· 🐛 Issues: GitHub Issues
+🐛 Issues: GitHub Issues
 ```
