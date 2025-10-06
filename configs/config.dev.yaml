@@ -1,9 +1,10 @@
 server:
   address: ":8080"
   environment: "development"
-  log_level: "debug"
+  log_level: "info"
   cors_allowed_origins:
-    - "*"
+    - "http://localhost:3000"
+    - "http://localhost:8080"
   shutdown_timeout: "30s"
 
 database:
@@ -11,7 +12,7 @@ database:
   port: 5432
   name: "relativistic_dev"
   username: "postgres"
-  password: "password"
+  password: "postgres"
   ssl_mode: "disable"
   max_connections: 20
   max_idle_connections: 5
@@ -27,9 +28,9 @@ cache:
   write_timeout: "3s"
 
 security:
-  jwt_secret: "dev-secret-key-only-for-development"
+  jwt_secret: "dev-secret-change-in-production-12345"
   jwt_expiry: "24h"
-  api_key: "dev-api-key-12345"
+  api_key: "dev-api-key-change-in-production"
   rate_limit: 10000
   cors_enabled: true
 
@@ -61,7 +62,7 @@ relativistic:
   validation_confidence_threshold: 0.6
 
 logging:
-  level: "debug"
+  level: "info"
   format: "text"
   output: "stdout"
   rotation:
