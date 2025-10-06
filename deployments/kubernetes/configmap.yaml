@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: relativistic-config
+  namespace: relativistic
+data:
+  config.yaml: |
+    server:
+      address: ":8080"
+      environment: "production"
+      shutdown_timeout: "30s"
+      read_timeout: "15s"
+      write_timeout: "15s"
+    
+    database:
+      host: "postgresql.postgresql.svc.cluster.local"
+      port: 5432
+      name: "relativistic"
+      ssl_mode: "require"
+    
+    redis:
+      address: "redis-master.redis.svc.cluster.local:6379"
+      pool_size: 100
+    
+    security:
+      token_expiry: "24h"
+      rate_limit: 100
+      rate_limit_window: "1m"
+      cors_origins:
+        - "*"
+    
+    metrics:
+      enabled: true
+      port: 9090
+      path: "/metrics"
+      push_interval: "60s"
+    
+    network:
+      bootstrap_nodes:
+        - "bootstrap1.relativistic-sdk.com:8080"
+        - "bootstrap2.relativistic-sdk.com:8080"
+      peer_discovery: true
+      max_peers: 50
+      listen_address: ":8080"
+    
+    logging:
+      level: "info"
+      format: "json"
+      output: "stdout"
