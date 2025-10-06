@@ -22,5 +22,13 @@ tags = ["jwt"]
 files = [
     '''(.*?)(\.test|_test|test_|mock|demo)(\.go)?$''',
     '''configs/config\.dev\.yaml$''',
-    '''\.env\.example$'''
+    '''\.env\.example$''',
+    '''README\.md$''',
+    '''docs/.*\.md$'''
+]
+
+[[allowlist]]
+commits = [
+    "12c7200",
+    "initial"
 ]
