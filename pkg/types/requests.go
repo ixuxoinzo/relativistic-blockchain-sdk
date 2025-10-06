@@ -2,16 +2,6 @@ package types
 
 import "time"
 
-type NodeRegistrationRequest struct {
-	ID          string   `json:"id" binding:"required"`
-	Position    Position `json:"position" binding:"required"`
-	Address     string   `json:"address" binding:"required"`
-	Region      string   `json:"region" binding:"required"`
-	Provider    string   `json:"provider"`
-	Version     string   `json:"version"`
-	Capabilities []string `json:"capabilities"`
-}
-
 type PositionUpdateRequest struct {
 	Position Position `json:"position" binding:"required"`
 }
