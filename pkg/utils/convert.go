@@ -116,7 +116,7 @@ func (cu *ConvertUtils) StructToMap(v interface{}) (map[string]interface{}, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal struct: %w", err)
 	}
-	
+
 	var m map[string]interface{}
 	err = json.Unmarshal(bytes, &m)
 	if err != nil {
@@ -130,7 +130,7 @@ func (cu *ConvertUtils) MapToStruct(m map[string]interface{}, v interface{}) err
 	if err != nil {
 		return fmt.Errorf("failed to marshal map: %w", err)
 	}
-	
+
 	err = json.Unmarshal(bytes, v)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal to struct: %w", err)
@@ -140,7 +140,7 @@ func (cu *ConvertUtils) MapToStruct(m map[string]interface{}, v interface{}) err
 
 func (cu *ConvertUtils) ConvertSlice(slice interface{}, convertFunc func(interface{}) (interface{}, error)) ([]interface{}, error) {
 	var result []interface{}
-	
+
 	switch s := slice.(type) {
 	case []string:
 		for _, item := range s {
@@ -177,11 +177,11 @@ func (cu *ConvertUtils) ConvertSlice(slice interface{}, convertFunc func(interfa
 	default:
 		return nil, fmt.Errorf("unsupported slice type: %T", slice)
 	}
-	
+
 	return result, nil
 }
 
-func (cu *ConvertUtils) ParseFloat(s string) float64 {
+func ParseFloat(s string) float64 {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return 0
@@ -189,7 +189,7 @@ func (cu *ConvertUtils) ParseFloat(s string) float64 {
 	return f
 }
 
-func (cu *ConvertUtils) ParseInt(s string) int {
+func ParseInt(s string) int {
 	i, err := strconv.Atoi(s)
 	if err != nil {
 		return 0
@@ -197,7 +197,7 @@ func (cu *ConvertUtils) ParseInt(s string) int {
 	return i
 }
 
-func (cu *ConvertUtils) ParseBool(s string) bool {
+func ParseBool(s string) bool {
 	b, err := strconv.ParseBool(s)
 	if err != nil {
 		return false
