@@ -1,8 +1,9 @@
+
 package network
 
 import (
 	"net/http"
- "encoding/json"
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -251,6 +252,23 @@ func (hm *HealthMonitor) GetHealthStatus() *HealthStatus {
 	return hm.healthStatus
 }
 
+func (hm *HealthMonitor) GetTypesHealthStatus() *types.HealthStatus {
+	healthStatus := hm.GetHealthStatus()
+	
+	return &types.HealthStatus{
+		Status:    healthStatus.OverallStatus,
+		Timestamp: healthStatus.Timestamp,
+		Version:   "1.0.0",
+		NodeCount: healthStatus.Metrics.TotalNodes,
+		Components: map[string]string{
+			"topology":  healthStatus.Components["topology"],
+			"latency":   healthStatus.Components["latency"], 
+			"discovery": healthStatus.Components["discovery"],
+			"peering":   healthStatus.Components["peering"],
+		},
+	}
+}
+
 func (hm *HealthMonitor) DeepHealthCheck() *DetailedHealthReport {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
@@ -469,4 +487,10 @@ type ComponentHealth struct {
 	Status  string                 `json:"status"`
 	Message string                 `json:"message,omitempty"`
 	Metrics map[string]interface{} `json:"metrics"`
+}
+
+type ConnectivityReport struct {
+	TotalNodes            int                `json:"total_nodes"`
+	ConnectedPairs        int                `json:"connected_pairs"`
+	ConnectivityPercentage float64           `json:"connectivity_percentage"`
 }
