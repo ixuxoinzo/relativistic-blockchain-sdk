@@ -23,6 +23,11 @@ type OffsetValidationResult struct {
 	Expected time.Duration `json:"expected_offset"`
 }
 
+type TimingValidationResult struct {
+    Valid  bool   `json:"valid"`
+    Reason string `json:"reason,omitempty"`
+}
+
 func NewConsensusValidator(timingManager *TimingManager, offsetManager *OffsetManager, logger *zap.Logger) *ConsensusValidator {
 	return &ConsensusValidator{
 		timingManager: timingManager,
