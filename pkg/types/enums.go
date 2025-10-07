@@ -1,5 +1,10 @@
 package types
 
+import (
+	"sync"
+	"time"
+)
+
 type NodeStatus string
 
 const (
@@ -125,10 +130,20 @@ const (
 
 
 type EngineMetrics struct {
-    CPUUsage    float64 `json:"cpu_usage"`
-    MemoryUsage float64 `json:"memory_usage"` 
-    NetworkIO   float64 `json:"network_io"`
-    BlockRate   float64 `json:"block_rate"`
-    Latency     float64 `json:"latency"`
-    Throughput  float64 `json:"throughput"`
+	CalculationsTotal int64         `json:"calculations_total"`
+	ValidationsTotal  int64         `json:"validations_total"`
+	CacheHits         int64         `json:"cache_hits"`
+	CacheMisses       int64         `json:"cache_misses"`
+	ErrorsTotal       int64         `json:"errors_total"`
+	CPUUsage          float64       `json:"cpu_usage"`
+	MemoryUsage       float64       `json:"memory_usage"`
+	NetworkIO         float64       `json:"network_io"`
+	BlockRate         float64       `json:"block_rate"`
+	Latency           float64       `json:"latency"`
+	Throughput        float64       `json:"throughput"`
+	Uptime            time.Duration `json:"uptime"`
+	ActiveConnections int           `json:"active_connections"`
+	PeersCount        int           `json:"peers_count"`
+	QueueSize         int           `json:"queue_size"`
+	Mu                sync.RWMutex  `json:"-"`
 }
