@@ -10,7 +10,7 @@ const (
 
 var Regions = []string{
 	"us-east",
-	"us-west", 
+	"us-west",
 	"eu-west",
 	"eu-central",
 	"ap-southeast",
@@ -20,12 +20,12 @@ var Regions = []string{
 }
 
 var PlanetaryDistances = map[string]float64{
-	"earth-mars":   54600000,
-	"earth-venus":  41400000,
+	"earth-mars":    54600000,
+	"earth-venus":   41400000,
 	"earth-mercury": 91600000,
 	"earth-jupiter": 628000000,
-	"mars-venus":   120000000,
-	"mars-jupiter": 550000000,
+	"mars-venus":    120000000,
+	"mars-jupiter":  550000000,
 }
 
 const (
@@ -34,17 +34,10 @@ const (
 )
 
 const (
-	ErrNodeNotFound     = "NODE_NOT_FOUND"
-	ErrCalculationFailed = "CALCULATION_FAILED"
-	ErrInvalidPosition  = "INVALID_POSITION"
-	ErrValidationFailed = "VALIDATION_FAILED"
-)
-
-const (
-	RoleAdmin    = "admin"
-	RoleUser     = "user"
-	RoleNode     = "node"
-	RoleMonitor  = "monitor"
+	RoleAdmin   = "admin"
+	RoleUser    = "user"
+	RoleNode    = "node"
+	RoleMonitor = "monitor"
 )
 
 const (
