@@ -258,7 +258,7 @@ func (nm *NetworkManager) HealthCheck() *types.HealthStatus {
 
 	alerts := nm.GetAlerts(false)
 	for _, alert := range alerts {
-		if alert.Severity == SeverityCritical {
+		if alert.Severity == types.AlertSeverityCritical {
 			status.Status = "degraded"
 			break
 		}
