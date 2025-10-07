@@ -23,8 +23,8 @@ type ValidationRequest struct {
 }
 
 type BlockValidationRequest struct {
-	Block      *Block  `json:"block" binding:"required"`
-	OriginNode string  `json:"origin_node" binding:"required"`
+	Block      *Block `json:"block" binding:"required"`
+	OriginNode string `json:"origin_node" binding:"required"`
 }
 
 type BatchValidationRequest struct {
