@@ -21,21 +21,25 @@ const (
 type AlertSeverity string
 
 const (
-	AlertSeverityLow      AlertSeverity = "low"
-	AlertSeverityMedium   AlertSeverity = "medium"
-	AlertSeverityHigh     AlertSeverity = "high"
-	AlertSeverityCritical AlertSeverity = "critical"
+    AlertSeverityLow      AlertSeverity = "low"
+    AlertSeverityMedium   AlertSeverity = "medium"
+    AlertSeverityHigh     AlertSeverity = "high"
+    AlertSeverityCritical AlertSeverity = "critical"
+    AlertSeverityInfo     AlertSeverity = "info"
+    AlertSeverityWarning  AlertSeverity = "warning"
 )
 
 type AlertType string
 
 const (
-	AlertTypeNodeDown       AlertType = "node_down"
-	AlertTypeHighLatency    AlertType = "high_latency"
-	AlertTypeNetworkIssue   AlertType = "network_issue"
-	AlertTypeSecurity       AlertType = "security"
-	AlertTypePerformance    AlertType = "performance"
-	AlertTypeCapacity       AlertType = "capacity"
+    AlertTypeNodeDown       AlertType = "node_down"
+    AlertTypeHighLatency    AlertType = "high_latency" 
+    AlertTypeNetworkIssue   AlertType = "network_issue"
+    AlertTypeSecurity       AlertType = "security"
+    AlertTypePerformance    AlertType = "performance"
+    AlertTypeCapacity       AlertType = "capacity"
+    AlertTypeDiscoveryIssue   AlertType = "discovery_issue"
+    AlertTypeNetworkPartition AlertType = "network_partition"
 )
 
 type EventType string
