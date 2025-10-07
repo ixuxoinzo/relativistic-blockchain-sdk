@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"net"
 	"net/mail"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -11,10 +13,10 @@ import (
 )
 
 type ValidationUtils struct {
-	emailRegex    *regexp.Regexp
-	nodeIDRegex   *regexp.Regexp
-	ipRegex       *regexp.Regexp
-	urlRegex      *regexp.Regexp
+	emailRegex  *regexp.Regexp
+	nodeIDRegex *regexp.Regexp
+	ipRegex     *regexp.Regexp
+	urlRegex    *regexp.Regexp
 }
 
 func NewValidationUtils() *ValidationUtils {
@@ -70,8 +72,8 @@ func (vu *ValidationUtils) ValidateIPAddress(ip string) error {
 
 	parts := strings.Split(ip, ".")
 	for _, part := range parts {
-		num := vu.parseInt(part)
-		if num < 0 || num > 255 {
+		num, err := strconv.Atoi(part)
+		if err != nil || num < 0 || num > 255 {
 			return types.NewError(types.ErrInvalidInput, "invalid IP address range")
 		}
 	}
@@ -163,29 +165,17 @@ func (vu *ValidationUtils) ValidateNotEmpty(value, fieldName string) error {
 func (vu *ValidationUtils) ValidateLength(value string, min, max int, fieldName string) error {
 	length := len(strings.TrimSpace(value))
 	if length < min {
-		return types.NewError(types.ErrInvalidInput, fieldName+" must be at least "+string(min)+" characters")
+		return types.NewError(types.ErrInvalidInput, fmt.Sprintf("%s must be at least %d characters", fieldName, min))
 	}
 	if length > max {
-		return types.NewError(types.ErrInvalidInput, fieldName+" must be at most "+string(max)+" characters")
+		return types.NewError(types.ErrInvalidInput, fmt.Sprintf("%s must be at most %d characters", fieldName, max))
 	}
 	return nil
 }
 
 func (vu *ValidationUtils) ValidateRange(value, min, max float64, fieldName string) error {
 	if value < min || value > max {
-		return types.NewError(types.ErrInvalidInput, fieldName+" must be between "+string(min)+" and "+string(max))
+		return types.NewError(types.ErrInvalidInput, fmt.Sprintf("%s must be between %f and %f", fieldName, min, max))
 	}
 	return nil
-}
-
-func (vu *ValidationUtils) parseInt(s string) int {
-	var result int
-	for _, ch := range s {
-		if ch >= '0' && ch <= '9' {
-			result = result*10 + int(ch-'0')
-		} else {
-			return -1
-		}
-	}
-	return result
 }
