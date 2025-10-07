@@ -1,8 +1,10 @@
 package network
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -14,49 +16,27 @@ import (
 type EventManager struct {
 	logger        *zap.Logger
 	mu            sync.RWMutex
-	subscribers   map[string]map[EventType][]EventCallback
+	subscribers   map[string]map[types.EventType][]EventCallback
 	eventHistory  []*EventRecord
 	maxHistory    int
 	webhookConfig *WebhookConfig
 }
 
-type EventType string
-
-const (
-	EventNodeRegistered   EventType = "node_registered"
-	EventNodeDeregistered EventType = "node_deregistered"
-	EventNodeUpdated      EventType = "node_updated"
-	EventPeerConnected    EventType = "peer_connected"
-	EventPeerDisconnected EventType = "peer_disconnected"
-	EventNetworkAlert     EventType = "network_alert"
-	EventLatencySpike     EventType = "latency_spike"
-	EventPartitionDetected EventType = "partition_detected"
-)
-
 type EventCallback func(*Event)
 
 type Event struct {
 	ID        string                 `json:"id"`
-	Type      EventType              `json:"type"`
+	Type      types.EventType        `json:"type"`
 	Timestamp time.Time              `json:"timestamp"`
 	Source    string                 `json:"source"`
 	Data      map[string]interface{} `json:"data"`
-	Severity  EventSeverity          `json:"severity"`
+	Severity  types.AlertSeverity    `json:"severity"`
 }
 
-type EventSeverity string
-
-const (
-	SeverityInfo     EventSeverity = "info"
-	SeverityWarning  EventSeverity = "warning"
-	SeverityError    EventSeverity = "error"
-	SeverityCritical EventSeverity = "critical"
-)
-
 type EventRecord struct {
-	Event     *Event     `json:"event"`
-	Processed bool       `json:"processed"`
-	Error     string     `json:"error,omitempty"`
+	Event     *Event `json:"event"`
+	Processed bool   `json:"processed"`
+	Error     string `json:"error,omitempty"`
 }
 
 type WebhookConfig struct {
@@ -69,7 +49,7 @@ type WebhookConfig struct {
 func NewEventManager(logger *zap.Logger) *EventManager {
 	return &EventManager{
 		logger:      logger,
-		subscribers: make(map[string]map[EventType][]EventCallback),
+		subscribers: make(map[string]map[types.EventType][]EventCallback),
 		eventHistory: make([]*EventRecord, 0),
 		maxHistory:  10000,
 		webhookConfig: &WebhookConfig{
@@ -79,12 +59,12 @@ func NewEventManager(logger *zap.Logger) *EventManager {
 	}
 }
 
-func (em *EventManager) Subscribe(component string, eventType EventType, callback EventCallback) string {
+func (em *EventManager) Subscribe(component string, eventType types.EventType, callback EventCallback) string {
 	em.mu.Lock()
 	defer em.mu.Unlock()
 
 	if _, exists := em.subscribers[component]; !exists {
-		em.subscribers[component] = make(map[EventType][]EventCallback)
+		em.subscribers[component] = make(map[types.EventType][]EventCallback)
 	}
 
 	if _, exists := em.subscribers[component][eventType]; !exists {
@@ -92,19 +72,16 @@ func (em *EventManager) Subscribe(component string, eventType EventType, callbac
 	}
 
 	em.subscribers[component][eventType] = append(em.subscribers[component][eventType], callback)
-
 	subscriptionID := fmt.Sprintf("%s-%s-%d", component, eventType, time.Now().UnixNano())
-
 	em.logger.Debug("Event subscription created",
 		zap.String("component", component),
 		zap.String("event_type", string(eventType)),
 		zap.String("subscription_id", subscriptionID),
 	)
-
 	return subscriptionID
 }
 
-func (em *EventManager) Unsubscribe(component string, eventType EventType, callback EventCallback) {
+func (em *EventManager) Unsubscribe(component string, eventType types.EventType, callback EventCallback) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
 
@@ -124,7 +101,7 @@ func (em *EventManager) Unsubscribe(component string, eventType EventType, callb
 	}
 }
 
-func (em *EventManager) EmitEvent(eventType EventType, source string, data map[string]interface{}, severity EventSeverity) {
+func (em *EventManager) EmitEvent(eventType types.EventType, source string, data map[string]interface{}, severity types.AlertSeverity) {
 	event := &Event{
 		ID:        fmt.Sprintf("evt_%d", time.Now().UnixNano()),
 		Type:      eventType,
@@ -135,7 +112,6 @@ func (em *EventManager) EmitEvent(eventType EventType, source string, data map[s
 	}
 
 	em.recordEvent(event)
-
 	em.notifySubscribers(event)
 
 	if em.webhookConfig.Enabled {
@@ -158,9 +134,7 @@ func (em *EventManager) recordEvent(event *Event) {
 		Event:     event,
 		Processed: false,
 	}
-
 	em.eventHistory = append(em.eventHistory, record)
-
 	if len(em.eventHistory) > em.maxHistory {
 		em.eventHistory = em.eventHistory[1:]
 	}
@@ -197,23 +171,14 @@ func (em *EventManager) sendWebhook(event *Event) {
 
 	payload, err := json.Marshal(event)
 	if err != nil {
-		em.logger.Error("Failed to marshal event for webhook",
-			zap.String("event_id", event.ID),
-			zap.Error(err),
-		)
+		em.logger.Error("Failed to marshal event for webhook", zap.String("event_id", event.ID), zap.Error(err))
 		return
 	}
 
-	client := &http.Client{
-		Timeout: em.webhookConfig.Timeout,
-	}
-
+	client := &http.Client{Timeout: em.webhookConfig.Timeout}
 	req, err := http.NewRequest("POST", em.webhookConfig.URL, bytes.NewBuffer(payload))
 	if err != nil {
-		em.logger.Error("Failed to create webhook request",
-			zap.String("event_id", event.ID),
-			zap.Error(err),
-		)
+		em.logger.Error("Failed to create webhook request", zap.String("event_id", event.ID), zap.Error(err))
 		return
 	}
 
@@ -224,34 +189,24 @@ func (em *EventManager) sendWebhook(event *Event) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		em.logger.Error("Failed to send webhook",
-			zap.String("event_id", event.ID),
-			zap.Error(err),
-		)
+		em.logger.Error("Failed to send webhook", zap.String("event_id", event.ID), zap.Error(err))
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		em.logger.Warn("Webhook returned error status",
-			zap.String("event_id", event.ID),
-			zap.Int("status_code", resp.StatusCode),
-		)
+		em.logger.Warn("Webhook returned error status", zap.String("event_id", event.ID), zap.Int("status_code", resp.StatusCode))
 	} else {
-		em.logger.Debug("Webhook sent successfully",
-			zap.String("event_id", event.ID),
-			zap.Int("status_code", resp.StatusCode),
-		)
+		em.logger.Debug("Webhook sent successfully", zap.String("event_id", event.ID), zap.Int("status_code", resp.StatusCode))
 	}
 }
 
-func (em *EventManager) GetEventHistory(eventType EventType, limit int) []*Event {
+func (em *EventManager) GetEventHistory(eventType types.EventType, limit int) []*Event {
 	em.mu.RLock()
 	defer em.mu.RUnlock()
 
 	var events []*Event
 	count := 0
-
 	for i := len(em.eventHistory) - 1; i >= 0 && count < limit; i-- {
 		record := em.eventHistory[i]
 		if eventType == "" || record.Event.Type == eventType {
@@ -259,7 +214,6 @@ func (em *EventManager) GetEventHistory(eventType EventType, limit int) []*Event
 			count++
 		}
 	}
-
 	return events
 }
 
@@ -268,10 +222,10 @@ func (em *EventManager) GetEventStatistics(since time.Time) *EventStatistics {
 	defer em.mu.RUnlock()
 
 	stats := &EventStatistics{
-		StartTime: since,
-		EndTime:   time.Now().UTC(),
-		Counts:    make(map[EventType]int),
-		Severities: make(map[EventSeverity]int),
+		StartTime:  since,
+		EndTime:    time.Now().UTC(),
+		Counts:     make(map[types.EventType]int),
+		Severities: make(map[types.AlertSeverity]int),
 	}
 
 	for _, record := range em.eventHistory {
@@ -279,31 +233,27 @@ func (em *EventManager) GetEventStatistics(since time.Time) *EventStatistics {
 			stats.TotalEvents++
 			stats.Counts[record.Event.Type]++
 			stats.Severities[record.Event.Severity]++
-
 			if !record.Processed {
 				stats.UnprocessedEvents++
 			}
 		}
 	}
-
 	return stats
 }
 
 type EventStatistics struct {
-	TotalEvents      int                    `json:"total_events"`
-	UnprocessedEvents int                   `json:"unprocessed_events"`
-	Counts          map[EventType]int      `json:"counts_by_type"`
-	Severities      map[EventSeverity]int  `json:"counts_by_severity"`
-	StartTime       time.Time              `json:"start_time"`
-	EndTime         time.Time              `json:"end_time"`
+	TotalEvents       int                          `json:"total_events"`
+	UnprocessedEvents int                          `json:"unprocessed_events"`
+	Counts            map[types.EventType]int      `json:"counts_by_type"`
+	Severities        map[types.AlertSeverity]int  `json:"counts_by_severity"`
+	StartTime         time.Time                    `json:"start_time"`
+	EndTime           time.Time                    `json:"end_time"`
 }
 
 func (em *EventManager) ConfigureWebhook(config *WebhookConfig) {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-
 	em.webhookConfig = config
-
 	em.logger.Info("Webhook configuration updated",
 		zap.Bool("enabled", config.Enabled),
 		zap.String("url", config.URL),
@@ -316,28 +266,27 @@ func (em *EventManager) CreateNodeEventHandlers(topology *TopologyManager) {
 
 	go func() {
 		for event := range topologyEventCh {
-			var eventType EventType
-			var severity EventSeverity
+			var eventType types.EventType
+			var severity types.AlertSeverity
 
 			switch event.Type {
-			case NodeAdded:
-				eventType = EventNodeRegistered
-				severity = SeverityInfo
-			case NodeRemoved:
-				eventType = EventNodeDeregistered
-				severity = SeverityWarning
-			case NodeUpdated:
-				eventType = EventNodeUpdated
-				severity = SeverityInfo
+			case types.EventTypeNodeRegistered:
+				eventType = types.EventTypeNodeRegistered
+				severity = types.AlertSeverityInfo
+			case types.EventTypeNodeRemoved:
+				eventType = types.EventTypeNodeRemoved
+				severity = types.AlertSeverityWarning
+			case types.EventTypeNodeUpdated:
+				eventType = types.EventTypeNodeUpdated
+				severity = types.AlertSeverityInfo
 			}
 
 			data := map[string]interface{}{
-				"node_id": event.Node.ID,
+				"node_id":  event.Node.ID,
 				"position": event.Node.Position,
 				"address":  event.Node.Address,
 				"region":   event.Node.Metadata.Region,
 			}
-
 			em.EmitEvent(eventType, "topology_manager", data, severity)
 		}
 	}()
@@ -360,27 +309,11 @@ func (em *EventManager) CreateNetworkEventHandlers(monitor *NetworkMonitor) {
 						"severity":   string(alert.Severity),
 						"alert_data": alert.Data,
 					}
-
-					em.EmitEvent(EventNetworkAlert, "network_monitor", data, em.mapAlertSeverity(alert.Severity))
+					em.EmitEvent(types.EventTypeAlertTriggered, "network_monitor", data, alert.Severity)
 				}
 			}
 		}
 	}()
-}
-
-func (em *EventManager) mapAlertSeverity(alertSeverity AlertSeverity) EventSeverity {
-	switch alertSeverity {
-	case SeverityLow:
-		return SeverityInfo
-	case SeverityMedium:
-		return SeverityWarning
-	case SeverityHigh:
-		return SeverityError
-	case SeverityCritical:
-		return SeverityCritical
-	default:
-		return SeverityInfo
-	}
 }
 
 func (em *EventManager) GetSubscriberCount() map[string]int {
@@ -388,7 +321,6 @@ func (em *EventManager) GetSubscriberCount() map[string]int {
 	defer em.mu.RUnlock()
 
 	counts := make(map[string]int)
-
 	for component, eventSubs := range em.subscribers {
 		total := 0
 		for _, callbacks := range eventSubs {
@@ -396,14 +328,12 @@ func (em *EventManager) GetSubscriberCount() map[string]int {
 		}
 		counts[component] = total
 	}
-
 	return counts
 }
 
 func (em *EventManager) ClearHistory() {
 	em.mu.Lock()
 	defer em.mu.Unlock()
-
 	em.eventHistory = make([]*EventRecord, 0)
 	em.logger.Info("Event history cleared")
 }
