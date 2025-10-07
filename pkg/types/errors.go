@@ -65,4 +65,3 @@ func IsRateLimit(err error) bool {
                 return re.Code == ErrRateLimit
         }
         return false
-komo@Komo:~/relativistic-blockchain-sdk/pkg/types$
