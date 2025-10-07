@@ -78,7 +78,7 @@ func (om *OffsetManager) CalculateNodeOffset(nodeID string, referenceNodes []str
 		if err != nil {
 			om.logger.Debug("Failed to calculate offset",
 				zap.String("node", nodeID),
-				zp.String("ref_node", refNodeID),
+				zap.String("ref_node", refNodeID),
 				zap.Error(err),
 			)
 			continue
