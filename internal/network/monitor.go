@@ -1,9 +1,11 @@
+
 package network
 
 import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -25,42 +27,24 @@ type NetworkMonitor struct {
 }
 
 type Alert struct {
-	ID          string
-	Type        AlertType
-	Severity    AlertSeverity
-	Message     string
-	NodeID      string
-	Timestamp   time.Time
+	ID           string
+	Type         types.AlertType
+	Severity     types.AlertSeverity
+	Message      string
+	NodeID       string
+	Timestamp    time.Time
 	Acknowledged bool
-	Data        map[string]interface{}
+	Data         map[string]interface{}
 }
 
-type AlertType string
-
-const (
-	AlertNodeDown       AlertType = "node_down"
-	AlertHighLatency    AlertType = "high_latency"
-	AlertNetworkPartition AlertType = "network_partition"
-	AlertDiscoveryIssue AlertType = "discovery_issue"
-)
-
-type AlertSeverity string
-
-const (
-	SeverityLow    AlertSeverity = "low"
-	SeverityMedium AlertSeverity = "medium"
-	SeverityHigh   AlertSeverity = "high"
-	SeverityCritical AlertSeverity = "critical"
-)
-
 type NetworkMetrics struct {
-	TotalNodes          int
-	ActiveNodes         int
-	NetworkHealth       float64
-	AverageLatency      time.Duration
-	PeersDiscovered     int
-	AlertsActive        int
-	LastUpdated         time.Time
+	TotalNodes       int
+	ActiveNodes      int
+	NetworkHealth    float64
+	AverageLatency   time.Duration
+	PeersDiscovered  int
+	AlertsActive     int
+	LastUpdated      time.Time
 }
 
 func NewNetworkMonitor(topology *TopologyManager, latency *LatencyMonitor, discovery *DiscoveryService, logger *zap.Logger) *NetworkMonitor {
@@ -80,11 +64,9 @@ func NewNetworkMonitor(topology *TopologyManager, latency *LatencyMonitor, disco
 
 func (nm *NetworkMonitor) StartMonitoring(ctx context.Context) error {
 	nm.logger.Info("Starting network monitor")
-
 	go nm.monitoringLoop(ctx)
 	go nm.alertProcessing(ctx)
 	go nm.metricsCollection(ctx)
-
 	return nil
 }
 
@@ -115,14 +97,13 @@ func (nm *NetworkMonitor) checkNodeHealth() {
 	for _, node := range nodes {
 		if node.LastSeen.Before(staleThreshold) && node.IsActive {
 			isHealthy := nm.pingNode(node)
-			
 			if !isHealthy {
 				nm.triggerAlert(Alert{
-					ID:        fmt.Sprintf("node_down_%s_%d", node.ID, currentTime.Unix()),
-					Type:      AlertNodeDown,
-					Severity:  SeverityMedium,
-					Message:   fmt.Sprintf("Node %s is not responding", node.ID),
-					NodeID:    node.ID,
+					ID:       fmt.Sprintf("node_down_%s_%d", node.ID, currentTime.Unix()),
+					Type:     types.AlertTypeNodeDown,
+					Severity: types.AlertSeverityMedium,
+					Message:  fmt.Sprintf("Node %s is not responding", node.ID),
+					NodeID:   node.ID,
 					Timestamp: currentTime,
 					Data: map[string]interface{}{
 						"last_seen": node.LastSeen,
@@ -137,7 +118,6 @@ func (nm *NetworkMonitor) checkNodeHealth() {
 
 func (nm *NetworkMonitor) pingNode(node *types.Node) bool {
 	timeout := 5 * time.Second
-	
 	conn, err := net.DialTimeout("tcp", node.Address, timeout)
 	if err != nil {
 		nm.logger.Debug("Node ping failed",
@@ -148,24 +128,22 @@ func (nm *NetworkMonitor) pingNode(node *types.Node) bool {
 		return false
 	}
 	defer conn.Close()
-	
 	return true
 }
 
 func (nm *NetworkMonitor) checkNetworkLatency() {
 	health := nm.latencyMonitor.GetNetworkHealth()
-	
 	if health.AverageLatency > time.Second {
 		nm.triggerAlert(Alert{
 			ID:        fmt.Sprintf("high_latency_%d", time.Now().Unix()),
-			Type:      AlertHighLatency,
-			Severity:  SeverityHigh,
+			Type:      types.AlertTypeHighLatency,
+			Severity:  types.AlertSeverityHigh,
 			Message:   fmt.Sprintf("High network latency detected: %v", health.AverageLatency),
 			Timestamp: time.Now().UTC(),
 			Data: map[string]interface{}{
-				"average_latency": health.AverageLatency,
+				"average_latency":     health.AverageLatency,
 				"healthy_connections": health.HealthyConnections,
-				"total_measurements": health.TotalMeasurements,
+				"total_measurements":  health.TotalMeasurements,
 			},
 		})
 	}
@@ -179,14 +157,13 @@ func (nm *NetworkMonitor) checkNetworkPartitions() {
 
 	expectedConnections := len(nodes) * (len(nodes) - 1) / 2
 	actualConnections := len(nm.latencyMonitor.GetAllMeasurements())
-
 	connectionRatio := float64(actualConnections) / float64(expectedConnections)
-	
+
 	if connectionRatio < 0.3 {
 		nm.triggerAlert(Alert{
 			ID:        fmt.Sprintf("network_partition_%d", time.Now().Unix()),
-			Type:      AlertNetworkPartition,
-			Severity:  SeverityCritical,
+			Type:      types.AlertTypeNetworkPartition,
+			Severity:  types.AlertSeverityCritical,
 			Message:   fmt.Sprintf("Possible network partition detected. Connection ratio: %.2f", connectionRatio),
 			Timestamp: time.Now().UTC(),
 			Data: map[string]interface{}{
@@ -200,12 +177,11 @@ func (nm *NetworkMonitor) checkNetworkPartitions() {
 
 func (nm *NetworkMonitor) checkDiscoveryHealth() {
 	stats := nm.discoveryService.GetDiscoveryStats()
-	
 	if stats.TotalPeers == 0 {
 		nm.triggerAlert(Alert{
 			ID:        fmt.Sprintf("discovery_issue_%d", time.Now().Unix()),
-			Type:      AlertDiscoveryIssue,
-			Severity:  SeverityHigh,
+			Type:      types.AlertTypeDiscoveryIssue,
+			Severity:  types.AlertSeverityHigh,
 			Message:   "No peers discovered - discovery service may be failing",
 			Timestamp: time.Now().UTC(),
 		})
@@ -217,16 +193,14 @@ func (nm *NetworkMonitor) triggerAlert(alert Alert) {
 	defer nm.mu.Unlock()
 
 	for _, existingAlert := range nm.alerts {
-		if existingAlert.Type == alert.Type && 
-		   existingAlert.NodeID == alert.NodeID &&
-		   !existingAlert.Acknowledged &&
-		   time.Since(existingAlert.Timestamp) < 10*time.Minute {
+		if existingAlert.Type == alert.Type &&
+			existingAlert.NodeID == alert.NodeID &&
+			!existingAlert.Acknowledged &&
+			time.Since(existingAlert.Timestamp) < 10*time.Minute {
 			return
 		}
 	}
-
 	nm.alerts[alert.ID] = &alert
-
 	nm.logger.Warn("Network alert triggered",
 		zap.String("alert_id", alert.ID),
 		zap.String("type", string(alert.Type)),
@@ -259,14 +233,12 @@ func (nm *NetworkMonitor) cleanupOldAlerts() {
 
 	cutoffTime := time.Now().Add(-24 * time.Hour)
 	cleanedCount := 0
-
 	for alertID, alert := range nm.alerts {
 		if alert.Timestamp.Before(cutoffTime) {
 			delete(nm.alerts, alertID)
 			cleanedCount++
 		}
 	}
-
 	if cleanedCount > 0 {
 		nm.logger.Debug("Cleaned up old alerts", zap.Int("count", cleanedCount))
 	}
@@ -279,7 +251,7 @@ func (nm *NetworkMonitor) escalateAlerts() {
 	for _, alert := range nm.alerts {
 		if !alert.Acknowledged {
 			age := time.Since(alert.Timestamp)
-			if age > 30*time.Minute && alert.Severity != SeverityCritical {
+			if age > 30*time.Minute && alert.Severity != types.AlertSeverityCritical {
 				nm.logger.Warn("Alert escalation needed",
 					zap.String("alert_id", alert.ID),
 					zap.String("type", string(alert.Type)),
@@ -347,7 +319,6 @@ func (nm *NetworkMonitor) AcknowledgeAlert(alertID string) error {
 	if !exists {
 		return fmt.Errorf("alert %s not found", alertID)
 	}
-
 	alert.Acknowledged = true
 	nm.logger.Info("Alert acknowledged", zap.String("alert_id", alertID))
 	return nil
@@ -356,7 +327,6 @@ func (nm *NetworkMonitor) AcknowledgeAlert(alertID string) error {
 func (nm *NetworkMonitor) GetMetrics() *NetworkMetrics {
 	nm.mu.RLock()
 	defer nm.mu.RUnlock()
-
 	return nm.metrics
 }
 
@@ -365,23 +335,22 @@ func (nm *NetworkMonitor) GetNetworkStatus() *NetworkStatus {
 	alerts := nm.getActiveAlerts()
 
 	status := &NetworkStatus{
-		Metrics:     metrics,
+		Metrics:      metrics,
 		ActiveAlerts: alerts,
-		Timestamp:   time.Now().UTC(),
+		Timestamp:    time.Now().UTC(),
 	}
 
 	if len(alerts) == 0 {
 		status.OverallStatus = "healthy"
 	} else {
 		for _, alert := range alerts {
-			if alert.Severity == SeverityCritical {
+			if alert.Severity == types.AlertSeverityCritical {
 				status.OverallStatus = "critical"
 				return status
 			}
 		}
 		status.OverallStatus = "degraded"
 	}
-
 	return status
 }
 
