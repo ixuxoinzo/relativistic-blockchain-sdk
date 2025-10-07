@@ -1,5 +1,11 @@
 package network
-
+const (
+    AlertTypeDiscoveryIssue = "discovery_issue"
+    AlertTypeNetworkPartition = "network_partition" 
+    AlertSeverityInfo = "info"
+    AlertSeverityWarning = "warning"
+    SeverityCritical = "critical"
+)
 import (
 	"bytes"
 	"encoding/json"
