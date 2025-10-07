@@ -27,18 +27,18 @@ type Metadata struct {
 }
 
 type Block struct {
-	Hash        string    `json:"hash"`
-	Timestamp   time.Time `json:"timestamp"`
-	ProposedBy  string    `json:"proposed_by"`
+	Hash         string    `json:"hash"`
+	Timestamp    time.Time `json:"timestamp"`
+	ProposedBy   string    `json:"proposed_by"`
 	NodePosition Position  `json:"node_position"`
-	Data        []byte    `json:"data"`
+	Data         []byte    `json:"data"`
 }
 
 type Transaction struct {
-	Hash        string    `json:"hash"`
-	Timestamp   time.Time `json:"timestamp"`
+	Hash         string    `json:"hash"`
+	Timestamp    time.Time `json:"timestamp"`
 	NodePosition Position  `json:"node_position"`
-	Data        []byte    `json:"data"`
+	Data         []byte    `json:"data"`
 }
 
 type ValidationResult struct {
@@ -88,12 +88,12 @@ type HealthStatus struct {
 }
 
 type NodeRegistrationRequest struct {
-	ID          string   `json:"id"`
-	Position    Position `json:"position"`
-	Address     string   `json:"address"`
-	Region      string   `json:"region"`
-	Provider    string   `json:"provider"`
-	Version     string   `json:"version"`
+	ID           string   `json:"id"`
+	Position     Position `json:"position"`
+	Address      string   `json:"address"`
+	Region       string   `json:"region"`
+	Provider     string   `json:"provider"`
+	Version      string   `json:"version"`
 	Capabilities []string `json:"capabilities"`
 }
 
@@ -111,8 +111,8 @@ type Vote struct {
 }
 
 type Proposal struct {
-	Block      *Block   `json:"block"`
-	ProposerID string   `json:"proposer_id"`
-	Signature  string   `json:"signature"`
+	Block      *Block    `json:"block"`
+	ProposerID string    `json:"proposer_id"`
+	Signature  string    `json:"signature"`
 	Timestamp  time.Time `json:"timestamp"`
 }
