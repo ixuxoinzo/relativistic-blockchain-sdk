@@ -205,7 +205,7 @@ func (nm *NetworkManager) GetTopologyGraph() *TopologyGraph {
 	}
 
 	measurements := nm.GetAllLatencyMeasurements()
-	for key, measurement := range measurements {
+	for _, measurement := range measurements {
 		graph.Links = append(graph.Links, &TopologyLink{
 			Source: measurement.SourceNode,
 			Target: measurement.TargetNode,
