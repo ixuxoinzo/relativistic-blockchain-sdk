@@ -86,9 +86,9 @@ const (
 type NetworkProtocol string
 
 const (
-	NetworkProtocolTCP  NetworkProtocol = "tcp"
-	NetworkProtocolUDP  NetworkProtocol = "udp"
-	NetworkProtocolTLS  NetworkProtocol = "tls"
+	NetworkProtocolTCP       NetworkProtocol = "tcp"
+	NetworkProtocolUDP       NetworkProtocol = "udp"
+	NetworkProtocolTLS       NetworkProtocol = "tls"
 	NetworkProtocolWebSocket NetworkProtocol = "websocket"
 )
 
