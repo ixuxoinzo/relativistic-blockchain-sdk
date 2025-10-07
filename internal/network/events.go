@@ -1,11 +1,5 @@
 package network
-const (
-    AlertTypeDiscoveryIssue = "discovery_issue"
-    AlertTypeNetworkPartition = "network_partition" 
-    AlertSeverityInfo = "info"
-    AlertSeverityWarning = "warning"
-    SeverityCritical = "critical"
-)
+
 import (
 	"bytes"
 	"encoding/json"
@@ -17,6 +11,14 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
+)
+
+const (
+    AlertTypeDiscoveryIssue = "discovery_issue"
+    AlertTypeNetworkPartition = "network_partition" 
+    AlertSeverityInfo = "info"
+    AlertSeverityWarning = "warning"
+    SeverityCritical = "critical"
 )
 
 type EventManager struct {
