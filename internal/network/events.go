@@ -13,14 +13,6 @@ import (
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
 )
 
-const (
-    AlertTypeDiscoveryIssue = "discovery_issue"
-    AlertTypeNetworkPartition = "network_partition" 
-    AlertSeverityInfo = "info"
-    AlertSeverityWarning = "warning"
-    SeverityCritical = "critical"
-)
-
 type EventManager struct {
 	logger        *zap.Logger
 	mu            sync.RWMutex
