@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"fmt"
-	"math"
 	"sync"
 	"time"
 
