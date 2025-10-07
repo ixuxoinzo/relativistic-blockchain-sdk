@@ -32,10 +32,11 @@ func (c *Calculator) CalculateNetworkDelay(distance float64, networkFactor float
 }
 
 func (c *Calculator) CalculateRelativisticDelay(distance float64, velocity float64, networkFactor float64) time.Duration {
-	lightDelay := distance / types.SpeedOfLight
-	realisticDelay := lightDelay * networkFactor
-	relativisticDelay := relativistic.ApplyTimeDilation(realisticDelay, velocity)
-	return time.Duration(relativisticDelay * float64(time.Second))
+    lightDelay := distance / types.SpeedOfLight
+    realisticDelay := lightDelay * networkFactor
+    realisticDelayDuration := time.Duration(realisticDelay * float64(time.Second))  
+    relativisticDelay := relativistic.ApplyTimeDilation(realisticDelayDuration, velocity)
+    return relativisticDelay 
 }
 
 func (c *Calculator) CalculateGreatCircleDistance(pos1, pos2 types.Position) (float64, error) {
