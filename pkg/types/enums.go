@@ -122,3 +122,13 @@ const (
 	BroadcastTypeRegion   BroadcastType = "region"
 	BroadcastTypeSpecific BroadcastType = "specific"
 )
+
+
+type EngineMetrics struct {
+    CPUUsage    float64 `json:"cpu_usage"`
+    MemoryUsage float64 `json:"memory_usage"` 
+    NetworkIO   float64 `json:"network_io"`
+    BlockRate   float64 `json:"block_rate"`
+    Latency     float64 `json:"latency"`
+    Throughput  float64 `json:"throughput"`
+}
