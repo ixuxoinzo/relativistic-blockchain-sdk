@@ -65,3 +65,4 @@ func IsRateLimit(err error) bool {
                 return re.Code == ErrRateLimit
         }
         return false
+}
