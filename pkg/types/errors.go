@@ -79,5 +79,5 @@ func IsRateLimit(err error) bool {
 	if re, ok := err.(*RelativisticError); ok {
 		return re.Code == ErrRateLimit
 	}
-	return false
+	return falerr
 }
