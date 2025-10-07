@@ -29,10 +29,10 @@ type Pagination struct {
 }
 
 type HealthResponse struct {
-	Status    string            `json:"status"`
-	Version   string            `json:"version"`
-	Timestamp time.Time         `json:"timestamp"`
-	Uptime    string            `json:"uptime"`
+	Status     string            `json:"status"`
+	Version    string            `json:"version"`
+	Timestamp  time.Time         `json:"timestamp"`
+	Uptime     string            `json:"uptime"`
 	Components map[string]string `json:"components"`
 }
 
