@@ -111,13 +111,12 @@ func (c *Calculator) CalculateTimeDilationFactor(velocity float64) float64 {
 }
 
 func (c *Calculator) CalculateGravitationalTimeDilation(gravityFieldStrength, height float64) float64 {
-	if gravityFieldStrength == 0 {
-		return 1.0
-	}
-
-	c := types.SpeedOfLight
-	phi := gravityFieldStrength * height
-	return 1.0 + phi/(c*c)
+    if gravityFieldStrength == 0 {
+        return 1.0
+    }
+    speedOfLight := types.SpeedOfLight 
+    phi := gravityFieldStrength * height
+    return 1.0 + phi/(speedOfLight*speedOfLight)
 }
 
 func (c *Calculator) CalculateSatelliteDelay(satellitePos, groundStationPos types.Position, satelliteVelocity float64) (time.Duration, error) {
