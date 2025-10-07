@@ -5,19 +5,19 @@ import "fmt"
 type ErrorCode string
 
 const (
-	ErrInternal         ErrorCode = "INTERNAL_ERROR"
-	ErrInvalidInput     ErrorCode = "INVALID_INPUT"
-	ErrNotFound         ErrorCode = "NOT_FOUND"
-	ErrAlreadyExists    ErrorCode = "ALREADY_EXISTS"
-	ErrPermissionDenied ErrorCode = "PERMISSION_DENIED"
-	ErrRateLimit        ErrorCode = "RATE_LIMIT_EXCEEDED"
-	ErrNetwork          ErrorCode = "NETWORK_ERROR"
-	ErrValidation       ErrorCode = "VALIDATION_ERROR"
-	ErrTimeout          ErrorCode = "TIMEOUT"
-	ErrUnavailable      ErrorCode = "SERVICE_UNAVAILABLE"
-	ErrNodeNotFound     ErrorCode = "NODE_NOT_FOUND"
+	ErrInternal          ErrorCode = "INTERNAL_ERROR"
+	ErrInvalidInput      ErrorCode = "INVALID_INPUT"
+	ErrNotFound          ErrorCode = "NOT_FOUND"
+	ErrAlreadyExists     ErrorCode = "ALREADY_EXISTS"
+	ErrPermissionDenied  ErrorCode = "PERMISSION_DENIED"
+	ErrRateLimit         ErrorCode = "RATE_LIMIT_EXCEEDED"
+	ErrNetwork           ErrorCode = "NETWORK_ERROR"
+	ErrValidation        ErrorCode = "VALIDATION_ERROR"
+	ErrTimeout           ErrorCode = "TIMEOUT"
+	ErrUnavailable       ErrorCode = "SERVICE_UNAVAILABLE"
+	ErrNodeNotFound      ErrorCode = "NODE_NOT_FOUND"
 	ErrCalculationFailed ErrorCode = "CALCULATION_FAILED"
-	ErrInvalidPosition  ErrorCode = "INVALID_POSITION"
+	ErrInvalidPosition   ErrorCode = "INVALID_POSITION"
 )
 
 type RelativisticError struct {
