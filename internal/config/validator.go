@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/url"
 	"strings"
-	"time"
+
 )
 
 type ConfigValidator struct {
