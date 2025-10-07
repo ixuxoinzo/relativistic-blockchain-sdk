@@ -8,14 +8,6 @@ const (
 	MaxAcceptableDelay    = 5000
 )
 
-const (
-	AlertTypeDiscoveryIssue   = "discovery_issue"
-	AlertTypeNetworkPartition = "network_partition"
-	AlertSeverityCritical     = "critical"
-	AlertSeverityWarning      = "warning"
-	AlertSeverityInfo         = "info"
-)
-
 var Regions = []string{
 	"us-east",
 	"us-west",
