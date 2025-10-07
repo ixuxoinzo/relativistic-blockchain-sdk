@@ -32,7 +32,8 @@ func NewConsensusValidator(timingManager *TimingManager, offsetManager *OffsetMa
 }
 
 func (cv *ConsensusValidator) ValidateBlockTiming(block *types.Block, validators []string) (*TimingValidationResult, error) {
-	return cv.timingManager.ValidateBlockTiming(block.Timestamp, block.ProposedBy, validators)
+    isValid := cv.timingManager.ValidateBlockTiming(block.Timestamp, block.ProposedBy, validators)
+    return &TimingValidationResult{Valid: isValid}, nil
 }
 
 func (cv *ConsensusValidator) ValidateBlockOffsets(block *types.Block, validators []string) *OffsetValidationResult {
