@@ -48,7 +48,7 @@ jobs:
         go mod download
         go mod verify
 
-       - name: 🧹 Force clean Go module and build cache
+    - name: 🧹 Force clean Go module and build cache
       run: |
         go clean -modcache
         go clean -cache
