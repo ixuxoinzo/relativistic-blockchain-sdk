@@ -15,26 +15,18 @@ import (
 )
 
 type TopologyManager struct {
-	nodes    map[string]*types.Node
-	mu       sync.RWMutex
-	redis    *redis.Client
-	logger   *zap.Logger
-	eventCh  chan TopologyEvent
+	nodes   map[string]*types.Node
+	mu      sync.RWMutex
+	redis   *redis.Client
+	logger  *zap.Logger
+	eventCh chan TopologyEvent
 }
 
 type TopologyEvent struct {
-	Type    EventType
-	Node    *types.Node
+	Type      types.EventType
+	Node      *types.Node
 	Timestamp time.Time
 }
-
-type EventType string
-
-const (
-	NodeAdded   EventType = "node_added"
-	NodeRemoved EventType = "node_removed"
-	NodeUpdated EventType = "node_updated"
-)
 
 func NewTopologyManager(redisAddr string, logger *zap.Logger) (*TopologyManager, error) {
 	rdb := redis.NewClient(&redis.Options{
@@ -46,7 +38,7 @@ func NewTopologyManager(redisAddr string, logger *zap.Logger) (*TopologyManager,
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
@@ -63,7 +55,6 @@ func NewTopologyManager(redisAddr string, logger *zap.Logger) (*TopologyManager,
 	}
 
 	go tm.processEvents()
-
 	return tm, nil
 }
 
@@ -88,18 +79,17 @@ func (tm *TopologyManager) AddNode(node *types.Node) error {
 	}
 
 	tm.eventCh <- TopologyEvent{
-		Type:      NodeAdded,
+		Type:      types.EventTypeNodeRegistered,
 		Node:      node,
 		Timestamp: time.Now().UTC(),
 	}
 
-	tm.logger.Info("Node added successfully", 
+	tm.logger.Info("Node added successfully",
 		zap.String("node_id", node.ID),
 		zap.Float64("lat", node.Position.Latitude),
 		zap.Float64("lon", node.Position.Longitude),
 		zap.String("region", node.Metadata.Region),
 	)
-
 	return nil
 }
 
@@ -111,7 +101,6 @@ func (tm *TopologyManager) GetNode(nodeID string) (*types.Node, error) {
 	if !exists {
 		return nil, fmt.Errorf("node %s not found", nodeID)
 	}
-
 	return node, nil
 }
 
@@ -125,7 +114,6 @@ func (tm *TopologyManager) RemoveNode(nodeID string) error {
 	}
 
 	delete(tm.nodes, nodeID)
-
 	ctx := context.Background()
 	key := fmt.Sprintf("node:%s", nodeID)
 	if err := tm.redis.Del(ctx, key).Err(); err != nil {
@@ -133,7 +121,7 @@ func (tm *TopologyManager) RemoveNode(nodeID string) error {
 	}
 
 	tm.eventCh <- TopologyEvent{
-		Type:      NodeRemoved,
+		Type:      types.EventTypeNodeRemoved,
 		Node:      node,
 		Timestamp: time.Now().UTC(),
 	}
@@ -166,7 +154,7 @@ func (tm *TopologyManager) UpdateNodePosition(nodeID string, newPos types.Positi
 	}
 
 	tm.eventCh <- TopologyEvent{
-		Type:      NodeUpdated,
+		Type:      types.EventTypeNodeUpdated,
 		Node:      node,
 		Timestamp: time.Now().UTC(),
 	}
@@ -176,7 +164,6 @@ func (tm *TopologyManager) UpdateNodePosition(nodeID string, newPos types.Positi
 		zap.Float64("new_lat", newPos.Latitude),
 		zap.Float64("new_lon", newPos.Longitude),
 	)
-
 	return nil
 }
 
@@ -188,7 +175,6 @@ func (tm *TopologyManager) GetAllNodes() []*types.Node {
 	for _, node := range tm.nodes {
 		nodes = append(nodes, node)
 	}
-
 	return nodes
 }
 
@@ -231,16 +217,13 @@ func (tm *TopologyManager) loadNodesFromRedis() error {
 			tm.logger.Warn("Failed to load node data", zap.String("key", key), zap.Error(err))
 			continue
 		}
-
 		node, err := tm.unmarshalNode(data)
 		if err != nil {
 			tm.logger.Warn("Failed to unmarshal node", zap.String("key", key), zap.Error(err))
 			continue
 		}
-
 		tm.nodes[node.ID] = node
 	}
-
 	tm.logger.Info("Loaded nodes from Redis", zap.Int("count", len(keys)))
 	return nil
 }
@@ -248,7 +231,7 @@ func (tm *TopologyManager) loadNodesFromRedis() error {
 func (tm *TopologyManager) persistNode(node *types.Node) error {
 	ctx := context.Background()
 	key := fmt.Sprintf("node:%s", node.ID)
-	
+
 	data := map[string]interface{}{
 		"id":        node.ID,
 		"lat":       node.Position.Latitude,
@@ -268,7 +251,6 @@ func (tm *TopologyManager) persistNode(node *types.Node) error {
 			data["capabilities"] = string(capabilitiesJSON)
 		}
 	}
-
 	return tm.redis.HSet(ctx, key, data).Err()
 }
 
@@ -299,7 +281,6 @@ func (tm *TopologyManager) unmarshalNode(data map[string]string) (*types.Node, e
 			node.Metadata.Capabilities = capabilities
 		}
 	}
-
 	return node, nil
 }
 
@@ -316,7 +297,6 @@ func (tm *TopologyManager) validateNode(node *types.Node) error {
 	if node.Position.Altitude < 0 {
 		return fmt.Errorf("invalid altitude: %f", node.Position.Altitude)
 	}
-
 	return nil
 }
 
