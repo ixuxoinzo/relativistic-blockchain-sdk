@@ -23,10 +23,7 @@ type OffsetValidationResult struct {
 	Expected time.Duration `json:"expected_offset"`
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 8d063fc (FIX: Implement all missing core method signatures and synchronize API usage.)
 func NewConsensusValidator(timingManager *TimingManager, offsetManager *OffsetManager, logger *zap.Logger) *ConsensusValidator {
 	return &ConsensusValidator{
 		timingManager: timingManager,

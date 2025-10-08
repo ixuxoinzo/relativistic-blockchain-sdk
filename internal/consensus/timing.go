@@ -23,7 +23,6 @@ type ConsensusTiming struct {
         CalculatedAt   time.Time     `json:"calculated_at"`
 }
 type TimingValidationResult struct {
-<<<<<<< HEAD
 	Valid           bool          `json:"valid"`
 	Reason          string        `json:"reason"`
 	TimeDiff        time.Duration `json:"time_diff"`
@@ -38,23 +37,8 @@ func NewTimingManager(topology *network.TopologyManager, logger *zap.Logger) *Ti
 		topologyManager: topology,
 		logger:          logger,
 		timingCache:     make(map[string]*ConsensusTiming),
-	}
-=======
-        Valid           bool          `json:"valid"`
-        Reason          string        `json:"reason"`
-        TimeDiff        time.Duration `json:"time_diff"`
-        MaxAcceptable   time.Duration `json:"max_acceptable"`
-        ProposedBy      string        `json:"proposed_by"`
-        ValidationError error         `json:"validation_error,omitempty"`
 }
-func NewTimingManager(topology *network.TopologyManager, logger *zap.Logger) *TimingManager {
-        return &TimingManager{
-                topologyManager: topology,
-                logger:          logger,
-                timingCache:     make(map[string]*ConsensusTiming),
-        }
 }
-
 func (tm *TimingManager) GetNodeOffset(nodeID string) (time.Duration, error) {
     return 0, fmt.Errorf("node offset feature not yet implemented for node: %s", nodeID)
 }
@@ -69,7 +53,7 @@ func (tm *TimingManager) ValidateBlockConsensus(block *types.Block, votes []*typ
 
 func (tm *TimingManager) CheckConsensusHealth() (map[string]interface{}, error) {
     return map[string]interface{}{"status": "unimplemented"}, nil
->>>>>>> 8d063fc (FIX: Implement all missing core method signatures and synchronize API usage.)
+
 }
 
 func (t *TimingValidationResult) Error() string {
@@ -249,12 +233,6 @@ func (tm *TimingManager) GetCacheStats() map[string]interface{} {
         stats["newest_entry"] = newest
         stats["cache_age"] = time.Since(oldest)
         return stats
-}
-func (t *TimingValidationResult) Error() string {
-        if t.ValidationError != nil {
-                return t.ValidationError.Error()
-        }
-        return t.Reason
 }
 func (tm *TimingManager) GetConsensusStats() (interface{}, error) {
     return nil, nil
