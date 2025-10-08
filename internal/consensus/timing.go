@@ -29,13 +29,14 @@ type ConsensusTiming struct {
 }
 
 type TimingValidationResult struct {
-	Valid          bool          `json:"valid"`
-	Reason         string        `json:"reason"`
-	TimeDiff       time.Duration `json:"time_diff"`
-	MaxAcceptable  time.Duration `json:"max_acceptable"`
-	ProposedBy     string        `json:"proposed_by"`
-	Error          error         `json:"error,omitempty"`
+	Valid           bool          `json:"valid"`
+	Reason          string        `json:"reason"`
+	TimeDiff        time.Duration `json:"time_diff"`
+	MaxAcceptable   time.Duration `json:"max_acceptable"`
+	ProposedBy      string        `json:"proposed_by"`
+	ValidationError error         `json:"validation_error,omitempty"`
 }
+
 
 func NewTimingManager(topology *network.TopologyManager, logger *zap.Logger) *TimingManager {
 	return &TimingManager{
@@ -43,6 +44,13 @@ func NewTimingManager(topology *network.TopologyManager, logger *zap.Logger) *Ti
 		logger:          logger,
 		timingCache:     make(map[string]*ConsensusTiming),
 	}
+}
+
+func (t *TimingValidationResult) Error() string {
+	if t.ValidationError != nil {
+		return t.ValidationError.Error()
+	}
+	return t.Reason
 }
 
 func (tm *TimingManager) CalculateConsensusTiming(validatorNodes []string) (*ConsensusTiming, error) {
