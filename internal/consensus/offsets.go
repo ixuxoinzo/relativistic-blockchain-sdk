@@ -12,11 +12,11 @@ import (
 )
 
 type OffsetManager struct {
-	timingManager   *TimingManager
-	logger          *zap.Logger
-	mu              sync.RWMutex
-	nodeOffsets     map[string]*NodeOffset
-	globalOffset    time.Duration
+	timingManager *TimingManager
+	logger        *zap.Logger
+	mu            sync.RWMutex
+	nodeOffsets   map[string]*NodeOffset
+	globalOffset  time.Duration
 }
 
 type NodeOffset struct {
@@ -29,12 +29,12 @@ type NodeOffset struct {
 }
 
 type OffsetCalculation struct {
-	SourceNode      string        `json:"source_node"`
-	TargetNode      string        `json:"target_node"`
+	SourceNode       string        `json:"source_node"`
+	TargetNode       string        `json:"target_node"`
 	CalculatedOffset time.Duration `json:"calculated_offset"`
-	Distance        float64       `json:"distance_km"`
+	Distance         float64       `json:"distance_km"`
 	PropagationDelay time.Duration `json:"propagation_delay"`
-	Timestamp       time.Time     `json:"timestamp"`
+	Timestamp        time.Time     `json:"timestamp"`
 }
 
 func NewOffsetManager(timingManager *TimingManager, logger *zap.Logger) *OffsetManager {
@@ -147,7 +147,7 @@ func (om *OffsetManager) calculateDistance(pos1, pos2 types.Position) (float64, 
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
 		math.Cos(lat1)*math.Cos(lat2)*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
-	
+
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	distance := types.EarthRadius * c
 
@@ -332,13 +332,13 @@ func (om *OffsetManager) GetOffsetStats() *OffsetStats {
 }
 
 type OffsetStats struct {
-	TotalNodes       int                `json:"total_nodes"`
-	AverageConfidence float64           `json:"average_confidence"`
-	MinOffset        time.Duration      `json:"min_offset"`
-	MaxOffset        time.Duration      `json:"max_offset"`
-	RegionBreakdown  map[string]int     `json:"region_breakdown"`
-	ConfidenceStats  *ConfidenceStats   `json:"confidence_stats"`
-	Timestamp        time.Time          `json:"timestamp"`
+	TotalNodes        int              `json:"total_nodes"`
+	AverageConfidence float64          `json:"average_confidence"`
+	MinOffset         time.Duration    `json:"min_offset"`
+	MaxOffset         time.Duration    `json:"max_offset"`
+	RegionBreakdown   map[string]int   `json:"region_breakdown"`
+	ConfidenceStats   *ConfidenceStats `json:"confidence_stats"`
+	Timestamp         time.Time        `json:"timestamp"`
 }
 
 type ConfidenceStats struct {

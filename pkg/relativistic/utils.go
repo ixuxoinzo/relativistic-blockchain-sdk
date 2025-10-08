@@ -33,7 +33,7 @@ func (u *Utils) CalculateGreatCircleDistance(lat1, lon1, lat2, lon2 float64) flo
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
 		math.Cos(lat1Rad)*math.Cos(lat2Rad)*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
-	
+
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	return types.EarthRadius * c
 }
@@ -52,11 +52,11 @@ func (u *Utils) CalculateBearing(lat1, lon1, lat2, lon2 float64) float64 {
 
 	bearing := math.Atan2(y, x)
 	bearing = u.RadiansToDegrees(bearing)
-	
+
 	if bearing < 0 {
 		bearing += 360
 	}
-	
+
 	return bearing
 }
 
@@ -73,7 +73,7 @@ func (u *Utils) CalculateMidpoint(lat1, lon1, lat2, lon2 float64) (float64, floa
 		math.Sin(lat1Rad)+math.Sin(lat2Rad),
 		math.Sqrt(math.Pow(math.Cos(lat1Rad)+Bx, 2)+By*By),
 	)
-	
+
 	midLon := lon1Rad + math.Atan2(By, math.Cos(lat1Rad)+Bx)
 
 	return u.RadiansToDegrees(midLat), u.RadiansToDegrees(midLon)

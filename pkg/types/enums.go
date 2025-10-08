@@ -26,25 +26,25 @@ const (
 type AlertSeverity string
 
 const (
-    AlertSeverityLow      AlertSeverity = "low"
-    AlertSeverityMedium   AlertSeverity = "medium"
-    AlertSeverityHigh     AlertSeverity = "high"
-    AlertSeverityCritical AlertSeverity = "critical"
-    AlertSeverityInfo     AlertSeverity = "info"
-    AlertSeverityWarning  AlertSeverity = "warning"
+	AlertSeverityLow      AlertSeverity = "low"
+	AlertSeverityMedium   AlertSeverity = "medium"
+	AlertSeverityHigh     AlertSeverity = "high"
+	AlertSeverityCritical AlertSeverity = "critical"
+	AlertSeverityInfo     AlertSeverity = "info"
+	AlertSeverityWarning  AlertSeverity = "warning"
 )
 
 type AlertType string
 
 const (
-    AlertTypeNodeDown       AlertType = "node_down"
-    AlertTypeHighLatency    AlertType = "high_latency" 
-    AlertTypeNetworkIssue   AlertType = "network_issue"
-    AlertTypeSecurity       AlertType = "security"
-    AlertTypePerformance    AlertType = "performance"
-    AlertTypeCapacity       AlertType = "capacity"
-    AlertTypeDiscoveryIssue   AlertType = "discovery_issue"
-    AlertTypeNetworkPartition AlertType = "network_partition"
+	AlertTypeNodeDown         AlertType = "node_down"
+	AlertTypeHighLatency      AlertType = "high_latency"
+	AlertTypeNetworkIssue     AlertType = "network_issue"
+	AlertTypeSecurity         AlertType = "security"
+	AlertTypePerformance      AlertType = "performance"
+	AlertTypeCapacity         AlertType = "capacity"
+	AlertTypeDiscoveryIssue   AlertType = "discovery_issue"
+	AlertTypeNetworkPartition AlertType = "network_partition"
 )
 
 type EventType string
@@ -128,22 +128,24 @@ const (
 	BroadcastTypeSpecific BroadcastType = "specific"
 )
 
-
 type EngineMetrics struct {
-	CalculationsTotal int64         `json:"calculations_total"`
-	ValidationsTotal  int64         `json:"validations_total"`
-	CacheHits         int64         `json:"cache_hits"`
-	CacheMisses       int64         `json:"cache_misses"`
-	ErrorsTotal       int64         `json:"errors_total"`
-	CPUUsage          float64       `json:"cpu_usage"`
-	MemoryUsage       float64       `json:"memory_usage"`
-	NetworkIO         float64       `json:"network_io"`
-	BlockRate         float64       `json:"block_rate"`
-	Latency           float64       `json:"latency"`
-	Throughput        float64       `json:"throughput"`
-	Uptime            time.Duration `json:"uptime"`
-	ActiveConnections int           `json:"active_connections"`
-	PeersCount        int           `json:"peers_count"`
-	QueueSize         int           `json:"queue_size"`
-	Mu                sync.RWMutex  `json:"-"`
+    StartTime time.Time     `json:"start_time"`  
+    NodeCount int           `json:"node_count"`   
+    Status    string        `json:"status"`      
+    CalculationsTotal int64 `json:"calculations_total"`
+    ValidationsTotal  int64 `json:"validations_total"`
+    CacheHits         int64 `json:"cache_hits"`
+    CacheMisses       int64 `json:"cache_misses"`
+    ErrorsTotal       int64 `json:"errors_total"`
+    CPUUsage          float64       `json:"cpu_usage"`
+    MemoryUsage       float64       `json:"memory_usage"`
+    NetworkIO         float64       `json:"network_io"`
+    BlockRate         float64       `json:"block_rate"`
+    Latency           float64       `json:"latency"`
+    Throughput        float64       `json:"throughput"`
+    Uptime            time.Duration `json:"uptime"`
+    ActiveConnections int           `json:"active_connections"`
+    PeersCount        int           `json:"peers_count"`
+    QueueSize         int           `json:"queue_size"`
+    Mu                sync.RWMutex  `json:"-"`
 }

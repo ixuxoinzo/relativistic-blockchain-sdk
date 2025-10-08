@@ -1,4 +1,3 @@
-
 package network
 
 import (
@@ -38,13 +37,13 @@ type Alert struct {
 }
 
 type NetworkMetrics struct {
-	TotalNodes       int
-	ActiveNodes      int
-	NetworkHealth    float64
-	AverageLatency   time.Duration
-	PeersDiscovered  int
-	AlertsActive     int
-	LastUpdated      time.Time
+	TotalNodes      int
+	ActiveNodes     int
+	NetworkHealth   float64
+	AverageLatency  time.Duration
+	PeersDiscovered int
+	AlertsActive    int
+	LastUpdated     time.Time
 }
 
 func NewNetworkMonitor(topology *TopologyManager, latency *LatencyMonitor, discovery *DiscoveryService, logger *zap.Logger) *NetworkMonitor {
@@ -99,11 +98,11 @@ func (nm *NetworkMonitor) checkNodeHealth() {
 			isHealthy := nm.pingNode(node)
 			if !isHealthy {
 				nm.triggerAlert(Alert{
-					ID:       fmt.Sprintf("node_down_%s_%d", node.ID, currentTime.Unix()),
-					Type:     types.AlertTypeNodeDown,
-					Severity: types.AlertSeverityMedium,
-					Message:  fmt.Sprintf("Node %s is not responding", node.ID),
-					NodeID:   node.ID,
+					ID:        fmt.Sprintf("node_down_%s_%d", node.ID, currentTime.Unix()),
+					Type:      types.AlertTypeNodeDown,
+					Severity:  types.AlertSeverityMedium,
+					Message:   fmt.Sprintf("Node %s is not responding", node.ID),
+					NodeID:    node.ID,
 					Timestamp: currentTime,
 					Data: map[string]interface{}{
 						"last_seen": node.LastSeen,

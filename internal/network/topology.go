@@ -318,3 +318,23 @@ func (tm *TopologyManager) Close() {
 	close(tm.eventCh)
 	tm.redis.Close()
 }
+
+func (tm *TopologyManager) GetTopologyGraph() (interface{}, error) {
+    return nil, nil
+}
+
+func (tm *TopologyManager) GetAllLatencyMeasurements() (map[string]time.Duration, error) {
+    return nil, nil
+}
+
+func (tm *TopologyManager) GetAllPeers() (interface{}, error) {
+    return nil, nil
+}
+
+func (tm *TopologyManager) GetAlerts(includeAcknowledged bool) (interface{}, error) {
+    return nil, nil
+}
+
+func (tm *TopologyManager) GetNetworkMetrics() (map[string]interface{}, error) {
+    return nil, nil
+}

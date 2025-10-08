@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/url"
 	"strings"
-
 )
 
 type ConfigValidator struct {
@@ -79,9 +78,9 @@ func (cv *ConfigValidator) validateDatabaseConfig(config *DatabaseConfig) {
 	}
 
 	validSSLMode := map[string]bool{
-		"disable": true,
-		"require": true,
-		"verify-ca": true,
+		"disable":     true,
+		"require":     true,
+		"verify-ca":   true,
 		"verify-full": true,
 	}
 	if !validSSLMode[config.SSLMode] {

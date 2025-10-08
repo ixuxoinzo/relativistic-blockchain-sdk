@@ -27,7 +27,7 @@ func CalculateLorentzFactor(velocity float64) float64 {
 		return 1.0
 	}
 	beta := velocity / c
-	return 1.0 / math.Sqrt(1 - beta*beta)
+	return 1.0 / math.Sqrt(1-beta*beta)
 }
 
 func CalculateRelativisticDelay(distance, velocity float64) time.Duration {

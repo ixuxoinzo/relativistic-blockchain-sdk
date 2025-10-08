@@ -38,10 +38,10 @@ type PeerConnection struct {
 type ConnectionStatus string
 
 const (
-	Connecting    ConnectionStatus = "connecting"
-	Connected     ConnectionStatus = "connected"
-	Disconnected  ConnectionStatus = "disconnected"
-	Failed        ConnectionStatus = "failed"
+	Connecting   ConnectionStatus = "connecting"
+	Connected    ConnectionStatus = "connected"
+	Disconnected ConnectionStatus = "disconnected"
+	Failed       ConnectionStatus = "failed"
 )
 
 type ConnectionMetrics struct {
@@ -91,7 +91,7 @@ func (pm *PeeringManager) connectionMaintenance(ctx context.Context) {
 
 func (pm *PeeringManager) maintainConnections() {
 	activePeers := pm.discoveryService.GetActivePeers()
-	
+
 	for _, peer := range activePeers {
 		if peer.Status == PeerConnected {
 			pm.ensureConnection(peer)
@@ -108,13 +108,13 @@ func (pm *PeeringManager) ensureConnection(peer *Peer) {
 	conn, exists := pm.connections[peer.Node.ID]
 	if !exists {
 		conn = &PeerConnection{
-			PeerID:      peer.Node.ID,
-			RemoteAddr:  peer.Node.Address,
-			Protocol:    "tcp",
-			Established: time.Now().UTC(),
+			PeerID:       peer.Node.ID,
+			RemoteAddr:   peer.Node.Address,
+			Protocol:     "tcp",
+			Established:  time.Now().UTC(),
 			LastActivity: time.Now().UTC(),
-			Status:      Connecting,
-			Metrics:     &ConnectionMetrics{},
+			Status:       Connecting,
+			Metrics:      &ConnectionMetrics{},
 		}
 		pm.connections[peer.Node.ID] = conn
 
@@ -147,7 +147,7 @@ func (pm *PeeringManager) establishConnection(conn *PeerConnection) {
 			InsecureSkipVerify: true,
 		}
 		tlsConn := tls.Client(netConn, tlsConfig)
-		
+
 		if err := tlsConn.Handshake(); err != nil {
 			pm.handleConnectionFailure(conn, err)
 			netConn.Close()
@@ -207,10 +207,10 @@ func (pm *PeeringManager) handleIncomingMessages(conn *PeerConnection, netConn n
 	defer netConn.Close()
 
 	buffer := make([]byte, 4096)
-	
+
 	for {
 		netConn.SetReadDeadline(time.Now().Add(30 * time.Second))
-		
+
 		n, err := netConn.Read(buffer)
 		if err != nil {
 			pm.handleConnectionError(conn, err)
@@ -286,7 +286,7 @@ func (pm *PeeringManager) SendMessage(peerID string, message []byte) error {
 		conn.Status = Failed
 		conn.lastError = err
 		pm.mu.Unlock()
-		
+
 		return fmt.Errorf("failed to send message: %w", err)
 	}
 
@@ -309,7 +309,7 @@ func (pm *PeeringManager) sendMessageToConnection(conn *PeerConnection, message 
 	}
 
 	conn.netConn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-	
+
 	n, err := conn.netConn.Write(data)
 	if err != nil {
 		return fmt.Errorf("failed to write to connection: %w", err)
@@ -447,7 +447,7 @@ func (pm *PeeringManager) Disconnect(peerID string) error {
 
 func (pm *PeeringManager) GetPeeringStats() *PeeringStats {
 	connections := pm.GetAllConnections()
-	
+
 	stats := &PeeringStats{
 		TotalConnections: len(connections),
 		Timestamp:        time.Now().UTC(),
@@ -461,7 +461,7 @@ func (pm *PeeringManager) GetPeeringStats() *PeeringStats {
 
 	for _, conn := range connections {
 		stats.StatusBreakdown[conn.Status]++
-		
+
 		if conn.Metrics != nil {
 			totalBytesSent += conn.Metrics.BytesSent
 			totalBytesReceived += conn.Metrics.BytesReceived
@@ -479,13 +479,13 @@ func (pm *PeeringManager) GetPeeringStats() *PeeringStats {
 }
 
 type PeeringStats struct {
-	TotalConnections     int
-	StatusBreakdown      map[ConnectionStatus]int
-	TotalBytesSent       int64
-	TotalBytesReceived   int64
-	TotalMessagesSent    int64
+	TotalConnections      int
+	StatusBreakdown       map[ConnectionStatus]int
+	TotalBytesSent        int64
+	TotalBytesReceived    int64
+	TotalMessagesSent     int64
 	TotalMessagesReceived int64
-	Timestamp           time.Time
+	Timestamp             time.Time
 }
 
 type PeerMessage struct {
@@ -506,7 +506,7 @@ const (
 
 func (pm *PeeringManager) Stop() {
 	close(pm.stopChan)
-	
+
 	pm.mu.Lock()
 	for peerID := range pm.connections {
 		pm.connections[peerID].Status = Disconnected

@@ -88,7 +88,7 @@ func InternalServerError(c *gin.Context, message string) {
 
 func Paginated(c *gin.Context, data interface{}, page, perPage, totalCount int) {
 	totalPages := (totalCount + perPage - 1) / perPage
-	
+
 	c.JSON(http.StatusOK, PaginatedResponse{
 		Response: Response{
 			Success: true,
@@ -109,10 +109,10 @@ func Paginated(c *gin.Context, data interface{}, page, perPage, totalCount int) 
 
 type ValidationErrorResponse struct {
 	Response
-	ValidationErrors []ValidationError `json:"validation_errors,omitempty"`
+	ValidationErrors []APIValidationError `json:"validation_errors,omitempty"`
 }
 
-func ValidationError(c *gin.Context, errors []ValidationError) {
+func ValidationError(c *gin.Context, errors []APIValidationError) {
 	c.JSON(http.StatusBadRequest, ValidationErrorResponse{
 		Response: Response{
 			Success: false,
@@ -127,10 +127,10 @@ func ValidationError(c *gin.Context, errors []ValidationError) {
 }
 
 type HealthResponse struct {
-	Status    string            `json:"status"`
-	Version   string            `json:"version"`
-	Timestamp time.Time         `json:"timestamp"`
-	Uptime    string            `json:"uptime"`
+	Status     string            `json:"status"`
+	Version    string            `json:"version"`
+	Timestamp  time.Time         `json:"timestamp"`
+	Uptime     string            `json:"uptime"`
 	Components map[string]string `json:"components"`
 }
 
@@ -151,9 +151,9 @@ func Metrics(c *gin.Context, metrics map[string]interface{}) {
 }
 
 type StatusResponse struct {
-	Status    string                 `json:"status"`
-	Services  map[string]string      `json:"services"`
-	Timestamp time.Time              `json:"timestamp"`
+	Status    string            `json:"status"`
+	Services  map[string]string `json:"services"`
+	Timestamp time.Time         `json:"timestamp"`
 }
 
 func Status(c *gin.Context, status *StatusResponse) {
@@ -184,9 +184,9 @@ func BulkOperation(c *gin.Context, processed, failed int, results interface{}) {
 
 type FileUploadResponse struct {
 	Response
-	Filename  string `json:"filename"`
-	Size      int64  `json:"size"`
-	URL       string `json:"url,omitempty"`
+	Filename string `json:"filename"`
+	Size     int64  `json:"size"`
+	URL      string `json:"url,omitempty"`
 }
 
 func FileUpload(c *gin.Context, filename string, size int64, url string) {
@@ -210,12 +210,12 @@ type WebSocketResponse struct {
 	Channel string      `json:"channel,omitempty"`
 }
 
-func WebSocketMessage(c *gin.Context, msgType string, data interface{}) {
+func SendWebSocketMessage(c *gin.Context, msgType string, data interface{}) {
 	response := WebSocketResponse{
 		Type: msgType,
 		Data: data,
 	}
-	
+
 	c.JSON(http.StatusOK, response)
 }
 

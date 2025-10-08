@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"context"
 	"fmt"
 	"net/http"
 	"sync"
@@ -24,33 +25,34 @@ type WebSocketManager struct {
 	unregister chan *WebSocketClient
 	logger     *zap.Logger
 	mu         sync.RWMutex
-	engine     *core.RelativisticEngine
+	engine     *core.Engine
 	topology   *network.TopologyManager
+	startTime  time.Time 
 }
 
 type WebSocketClient struct {
-	conn     *websocket.Conn
-	send     chan WebSocketMessage
-	manager  *WebSocketManager
-	userID   string
-	channels map[string]bool
+	conn      *websocket.Conn
+	send      chan WebSocketMessage
+	manager   *WebSocketManager
+	userID    string
+	channels  map[string]bool
 	sessionID string
 }
 
 type WebSocketMessage struct {
-	Type      string          `json:"type"`
-	Channel   string          `json:"channel,omitempty"`
-	Data      interface{}     `json:"data,omitempty"`
-	Error     string          `json:"error,omitempty"`
-	Timestamp time.Time       `json:"timestamp"`
-	RequestID string          `json:"request_id,omitempty"`
+	Type      string      `json:"type"`
+	Channel   string      `json:"channel,omitempty"`
+	Data      interface{} `json:"data,omitempty"`
+	Error     string      `json:"error,omitempty"`
+	Timestamp time.Time   `json:"timestamp"`
+	RequestID string      `json:"request_id,omitempty"`
 }
 
-func NewWebSocketManager(engine *core.RelativisticEngine, topology *network.TopologyManager, logger *zap.Logger) *WebSocketManager {
+func NewWebSocketManager(engine *core.Engine, topology *network.TopologyManager, logger *zap.Logger) *WebSocketManager {
 	return &WebSocketManager{
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
-				return true // In production, implement proper origin checking
+				return true 
 			},
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -62,6 +64,7 @@ func NewWebSocketManager(engine *core.RelativisticEngine, topology *network.Topo
 		logger:     logger,
 		engine:     engine,
 		topology:   topology,
+		startTime:  time.Now(),
 	}
 }
 
@@ -77,7 +80,7 @@ func (wm *WebSocketManager) run() {
 			wm.mu.Lock()
 			wm.clients[client] = true
 			wm.mu.Unlock()
-			wm.logger.Info("WebSocket client connected", 
+			wm.logger.Info("WebSocket client connected",
 				zap.String("user_id", client.userID),
 				zap.String("session_id", client.sessionID),
 			)
@@ -100,7 +103,7 @@ func (wm *WebSocketManager) run() {
 				close(client.send)
 			}
 			wm.mu.Unlock()
-			wm.logger.Info("WebSocket client disconnected", 
+			wm.logger.Info("WebSocket client disconnected",
 				zap.String("user_id", client.userID),
 				zap.String("session_id", client.sessionID),
 			)
@@ -193,7 +196,7 @@ func (c *WebSocketClient) readPump() {
 		err := c.conn.ReadJSON(&message)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				c.manager.logger.Warn("WebSocket read error", 
+				c.manager.logger.Warn("WebSocket read error",
 					zap.String("user_id", c.userID),
 					zap.Error(err),
 				)
@@ -224,7 +227,7 @@ func (c *WebSocketClient) writePump() {
 
 			err := c.conn.WriteJSON(message)
 			if err != nil {
-				c.manager.logger.Warn("WebSocket write error", 
+				c.manager.logger.Warn("WebSocket write error",
 					zap.String("user_id", c.userID),
 					zap.Error(err),
 				)
@@ -265,7 +268,7 @@ func (c *WebSocketClient) handleSubscribe(message *WebSocketMessage) {
 	var data struct {
 		Channels []string `json:"channels"`
 	}
-	
+
 	if err := json.Unmarshal(message.Data.([]byte), &data); err != nil {
 		c.sendError("invalid_subscription", "Invalid subscription data", message.RequestID)
 		return
@@ -276,7 +279,7 @@ func (c *WebSocketClient) handleSubscribe(message *WebSocketMessage) {
 		if c.isValidChannel(channel) {
 			c.channels[channel] = true
 			subscribed = append(subscribed, channel)
-			c.manager.logger.Debug("Client subscribed to channel", 
+			c.manager.logger.Debug("Client subscribed to channel",
 				zap.String("user_id", c.userID),
 				zap.String("channel", channel),
 			)
@@ -297,7 +300,7 @@ func (c *WebSocketClient) handleUnsubscribe(message *WebSocketMessage) {
 	var data struct {
 		Channels []string `json:"channels"`
 	}
-	
+
 	if err := json.Unmarshal(message.Data.([]byte), &data); err != nil {
 		c.sendError("invalid_unsubscription", "Invalid unsubscription data", message.RequestID)
 		return
@@ -308,7 +311,7 @@ func (c *WebSocketClient) handleUnsubscribe(message *WebSocketMessage) {
 		if c.channels[channel] {
 			delete(c.channels, channel)
 			unsubscribed = append(unsubscribed, channel)
-			c.manager.logger.Debug("Client unsubscribed from channel", 
+			c.manager.logger.Debug("Client unsubscribed from channel",
 				zap.String("user_id", c.userID),
 				zap.String("channel", channel),
 			)
@@ -341,7 +344,7 @@ func (c *WebSocketClient) handleCalculatePropagation(message *WebSocketMessage) 
 		Source  string   `json:"source"`
 		Targets []string `json:"targets"`
 	}
-	
+
 	if err := json.Unmarshal(message.Data.([]byte), &data); err != nil {
 		c.sendError("invalid_calculation_request", "Invalid calculation data", message.RequestID)
 		return
@@ -370,11 +373,11 @@ func (c *WebSocketClient) handleCalculatePropagation(message *WebSocketMessage) 
 
 func (c *WebSocketClient) handleValidateTimestamp(message *WebSocketMessage) {
 	var data struct {
-		Timestamp  time.Time     `json:"timestamp"`
+		Timestamp  time.Time      `json:"timestamp"`
 		Position   types.Position `json:"position"`
-		OriginNode string        `json:"origin_node"`
+		OriginNode string         `json:"origin_node"`
 	}
-	
+
 	if err := json.Unmarshal(message.Data.([]byte), &data); err != nil {
 		c.sendError("invalid_validation_request", "Invalid validation data", message.RequestID)
 		return
@@ -388,11 +391,11 @@ func (c *WebSocketClient) handleValidateTimestamp(message *WebSocketMessage) {
 			RequestID: message.RequestID,
 			Timestamp: time.Now().UTC(),
 			Data: map[string]interface{}{
-				"valid":      valid,
-				"confidence": result.Confidence,
-				"reason":     result.Reason,
+				"valid":          valid,
+				"confidence":     result.Confidence,
+				"reason":         result.Reason,
 				"expected_delay": result.ExpectedDelay.String(),
-				"actual_diff":   result.ActualDiff.String(),
+				"actual_diff":    result.ActualDiff.String(),
 			},
 		})
 	}()
@@ -400,7 +403,7 @@ func (c *WebSocketClient) handleValidateTimestamp(message *WebSocketMessage) {
 
 func (c *WebSocketClient) handleGetMetrics(message *WebSocketMessage) {
 	metrics := c.manager.engine.GetNetworkMetrics()
-	
+
 	c.sendMessage(WebSocketMessage{
 		Type:      "metrics",
 		RequestID: message.RequestID,
@@ -413,7 +416,7 @@ func (c *WebSocketClient) handleAuth(message *WebSocketMessage) {
 	var data struct {
 		Token string `json:"token"`
 	}
-	
+
 	if err := json.Unmarshal(message.Data.([]byte), &data); err != nil {
 		c.sendError("invalid_auth", "Invalid auth data", message.RequestID)
 		return
@@ -471,7 +474,7 @@ func (c *WebSocketClient) isValidChannel(channel string) bool {
 func (c *WebSocketClient) getAvailableChannels() []string {
 	return []string{
 		"system",
-		"notifications", 
+		"notifications",
 		"metrics",
 		"nodes",
 		"alerts",
@@ -506,7 +509,7 @@ func (wm *WebSocketManager) broadcastNodeUpdates() {
 	for range ticker.C {
 		nodes := wm.topology.GetAllNodes()
 		activeNodes := wm.topology.GetActiveNodes()
-		
+
 		wm.BroadcastToChannel("nodes", "nodes_update", map[string]interface{}{
 			"total_nodes":  len(nodes),
 			"active_nodes": len(activeNodes),
@@ -520,7 +523,6 @@ func (wm *WebSocketManager) broadcastAlerts() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		// In production, get real alerts from monitoring system
 		alerts := []map[string]interface{}{
 			{
 				"id":        "alert_1",
@@ -529,7 +531,7 @@ func (wm *WebSocketManager) broadcastAlerts() {
 				"timestamp": time.Now().UTC(),
 			},
 		}
-		
+
 		wm.BroadcastToChannel("alerts", "alerts_update", alerts)
 	}
 }
@@ -545,7 +547,7 @@ func (wm *WebSocketManager) broadcastSystemStatus() {
 			"version":   "1.0.0",
 			"uptime":    time.Since(wm.startTime).String(),
 		}
-		
+
 		wm.BroadcastToChannel("system", "system_status", status)
 	}
 }
@@ -554,7 +556,6 @@ func generateSessionID() string {
 	return fmt.Sprintf("session_%d", time.Now().UnixNano())
 }
 
-// Server integration methods
 func (s *Server) websocketHandler(c *gin.Context) {
 	s.websocketManager.HandleConnection(c)
 }

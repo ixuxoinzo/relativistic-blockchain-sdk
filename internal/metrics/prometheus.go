@@ -35,7 +35,7 @@ func NewPrometheusMetrics(collector *MetricsCollector, logger *zap.Logger) *Prom
 func (pm *PrometheusMetrics) RegisterCounter(name, help string, labels map[string]string) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	pm.registry[name] = &PrometheusMetric{
 		Name:   name,
 		Type:   "counter",
@@ -48,7 +48,7 @@ func (pm *PrometheusMetrics) RegisterCounter(name, help string, labels map[strin
 func (pm *PrometheusMetrics) RegisterGauge(name, help string, labels map[string]string) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	pm.registry[name] = &PrometheusMetric{
 		Name:   name,
 		Type:   "gauge",
@@ -61,7 +61,7 @@ func (pm *PrometheusMetrics) RegisterGauge(name, help string, labels map[string]
 func (pm *PrometheusMetrics) RegisterHistogram(name, help string, labels map[string]string) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	pm.registry[name] = &PrometheusMetric{
 		Name:   name,
 		Type:   "histogram",
@@ -74,7 +74,7 @@ func (pm *PrometheusMetrics) RegisterHistogram(name, help string, labels map[str
 func (pm *PrometheusMetrics) SetCounterValue(name string, value float64) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	if metric, exists := pm.registry[name]; exists {
 		metric.Value = value
 	}
@@ -83,7 +83,7 @@ func (pm *PrometheusMetrics) SetCounterValue(name string, value float64) {
 func (pm *PrometheusMetrics) SetGaugeValue(name string, value float64) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	if metric, exists := pm.registry[name]; exists {
 		metric.Value = value
 	}
@@ -92,15 +92,15 @@ func (pm *PrometheusMetrics) SetGaugeValue(name string, value float64) {
 func (pm *PrometheusMetrics) GenerateMetrics() string {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
-	
+
 	var output string
-	
+
 	for _, metric := range pm.registry {
 		if metric.Help != "" {
 			output += fmt.Sprintf("# HELP %s %s\n", metric.Name, metric.Help)
 			output += fmt.Sprintf("# TYPE %s %s\n", metric.Name, metric.Type)
 		}
-		
+
 		labels := ""
 		if len(metric.Labels) > 0 {
 			labels = "{"
@@ -109,10 +109,10 @@ func (pm *PrometheusMetrics) GenerateMetrics() string {
 			}
 			labels = labels[:len(labels)-1] + "}"
 		}
-		
+
 		output += fmt.Sprintf("%s%s %f\n", metric.Name, labels, metric.Value)
 	}
-	
+
 	return output
 }
 
@@ -124,7 +124,7 @@ func (pm *PrometheusMetrics) HTTPHandler(w http.ResponseWriter, r *http.Request)
 
 func (pm *PrometheusMetrics) UpdateFromCollector() {
 	metrics := pm.collector.GetMetrics()
-	
+
 	for name, value := range metrics {
 		switch v := value.(type) {
 		case int64:
@@ -138,7 +138,7 @@ func (pm *PrometheusMetrics) UpdateFromCollector() {
 func (pm *PrometheusMetrics) StartAutoUpdate(interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		pm.UpdateFromCollector()
 	}

@@ -9,9 +9,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.comcom/ixuxoinzo/relativistic-blockchain-sdk/internal/network"
+	"github.com/ixuxoinzo/relativistic-blockchain-sdk/internal/network"
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
-	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/utils"
 )
 
 type RelativisticEngine struct {
@@ -68,7 +67,7 @@ func (e *RelativisticEngine) CalculatePropagationDelay(nodeA, nodeB *types.Node)
 	}()
 
 	cacheKey := fmt.Sprintf("delay:%s:%s", nodeA.ID, nodeB.ID)
-	
+
 	if cached, found := e.cache.Load(cacheKey); found {
 		e.metrics.Mu.Lock()
 		e.metrics.CacheHits++
@@ -91,7 +90,7 @@ func (e *RelativisticEngine) CalculatePropagationDelay(nodeA, nodeB *types.Node)
 	lightDelay := distance / e.config.SpeedOfLight
 	realisticDelay := lightDelay * e.config.NetworkFactor
 	result := time.Duration(realisticDelay * float64(time.Second))
-	
+
 	e.cache.Store(cacheKey, result)
 	time.AfterFunc(e.config.CacheTTL, func() {
 		e.cache.Delete(cacheKey)
@@ -119,7 +118,7 @@ func (e *RelativisticEngine) calculateGreatCircleDistance(pos1, pos2 types.Posit
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
 		math.Cos(lat1)*math.Cos(lat2)*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
-	
+
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	distance := types.EarthRadius * c
 
@@ -151,7 +150,7 @@ func (e *RelativisticEngine) ValidateTimestamp(ctx context.Context, blockTimesta
 			Valid:      false,
 			Reason:     fmt.Sprintf("Node not found: %s", originNode),
 			Confidence: 0.0,
-			ErrorCode:  types.ErrNodeNotFound,
+			ErrorCode: string(types.ErrNodeNotFound),
 		}
 	}
 
@@ -164,18 +163,24 @@ func (e *RelativisticEngine) ValidateTimestamp(ctx context.Context, blockTimesta
 			Valid:      false,
 			Reason:     fmt.Sprintf("Delay calculation failed: %v", err),
 			Confidence: 0.0,
-			ErrorCode:  types.ErrCalculationFailed,
+			ErrorCode: string(types.ErrCalculationFailed),
 		}
 	}
 
 	now := time.Now().UTC()
 	timeDiff := now.Sub(blockTimestamp.UTC())
-	absTimeDiff := utils.AbsDuration(timeDiff)
+        var absTimeDiff time.Duration
+        if timeDiff < 0 {
+        absTimeDiff = -timeDiff
+        } else {
+        absTimeDiff = timeDiff
+        }
+
 
 	maxAcceptable := expectedDelay + e.config.MaxAcceptableDelay
 
 	valid := absTimeDiff <= maxAcceptable
-	
+
 	confidence := 1.0 - (float64(absTimeDiff) / float64(maxAcceptable))
 	if confidence < 0 {
 		confidence = 0.0
@@ -202,20 +207,20 @@ func (e *RelativisticEngine) ValidateTimestamp(ctx context.Context, blockTimesta
 	)
 
 	return valid, &types.ValidationResult{
-		Valid:          valid,
-		Reason:         fmt.Sprintf("Time difference: %v, Max acceptable: %v", timeDiff, maxAcceptable),
-		Confidence:     confidence,
-		ExpectedDelay:  expectedDelay,
-		ActualDiff:     timeDiff,
-		Threshold:      e.config.ValidationThreshold,
-		ErrorCode:      "",
-		ValidatedAt:    now,
+		Valid:         valid,
+		Reason:        fmt.Sprintf("Time difference: %v, Max acceptable: %v", timeDiff, maxAcceptable),
+		Confidence:    confidence,
+		ExpectedDelay: expectedDelay,
+		ActualDiff:    timeDiff,
+		Threshold:     e.config.ValidationThreshold,
+		ErrorCode:     "",
+		ValidatedAt:   now,
 	}
 }
 
 func (e *RelativisticEngine) CalculateInterplanetaryDelay(planetA, planetB string) (time.Duration, error) {
 	cacheKey := fmt.Sprintf("interplanetary:%s:%s", planetA, planetB)
-	
+
 	if cached, found := e.cache.Load(cacheKey); found {
 		e.metrics.Mu.Lock()
 		e.metrics.CacheHits++
@@ -265,7 +270,7 @@ func (e *RelativisticEngine) BatchCalculateDelays(nodes []*types.Node) (map[stri
 			wg.Add(1)
 			go func(nodeA, nodeB *types.Node) {
 				defer wg.Done()
-				
+
 				delay, err := e.CalculatePropagationDelay(nodeA, nodeB)
 				if err != nil {
 					errCh <- fmt.Errorf("failed to calculate delay between %s and %s: %w", nodeA.ID, nodeB.ID, err)
@@ -300,7 +305,7 @@ func (e *RelativisticEngine) BatchCalculateDelays(nodes []*types.Node) (map[stri
 
 func (e *RelativisticEngine) GetNetworkMetrics() *types.NetworkMetrics {
 	nodes := e.topologyManager.GetAllNodes()
-	
+
 	metrics := &types.NetworkMetrics{
 		TotalNodes:      len(nodes),
 		ActiveNodes:     e.getActiveNodeCount(nodes),
@@ -413,7 +418,7 @@ func (e *RelativisticEngine) ClearCache() {
 func (e *RelativisticEngine) GetEngineMetrics() *types.EngineMetrics {
 	e.metrics.Mu.RLock()
 	defer e.metrics.Mu.RUnlock()
-	
+
 	metricsCopy := &types.EngineMetrics{
 		CalculationsTotal: e.metrics.CalculationsTotal,
 		ValidationsTotal:  e.metrics.ValidationsTotal,
@@ -422,4 +427,10 @@ func (e *RelativisticEngine) GetEngineMetrics() *types.EngineMetrics {
 		ErrorsTotal:       e.metrics.ErrorsTotal,
 	}
 	return metricsCopy
+}
+func AbsDuration(d time.Duration) time.Duration {
+    if d < 0 {
+        return -d
+    }
+    return d
 }

@@ -23,11 +23,11 @@ type DiscoveryService struct {
 }
 
 type Peer struct {
-	Node          *types.Node
-	LastSeen      time.Time
-	Status        PeerStatus
-	Capabilities  []string
-	Version       string
+	Node         *types.Node
+	LastSeen     time.Time
+	Status       PeerStatus
+	Capabilities []string
+	Version      string
 }
 
 type PeerStatus string
@@ -75,7 +75,7 @@ func (ds *DiscoveryService) peerDiscovery(ctx context.Context) {
 
 func (ds *DiscoveryService) discoverNewPeers() {
 	ds.logger.Debug("Discovering new peers")
-	
+
 	ds.discoverFromDNSeeds()
 	ds.discoverFromKnownPeers()
 	ds.discoverFromBootstrapNodes()
@@ -130,7 +130,7 @@ func (ds *DiscoveryService) discoverFromDNSeeds() {
 
 func (ds *DiscoveryService) discoverFromKnownPeers() {
 	knownPeers := ds.GetActivePeers()
-	
+
 	for _, peer := range knownPeers {
 		peerList, err := ds.queryPeerForPeers(peer)
 		if err != nil {
@@ -149,7 +149,7 @@ func (ds *DiscoveryService) discoverFromKnownPeers() {
 
 func (ds *DiscoveryService) queryPeerForPeers(peer *Peer) ([]*Peer, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
-	
+
 	url := fmt.Sprintf("http://%s/api/v1/peers", peer.Node.Address)
 	resp, err := client.Get(url)
 	if err != nil {
@@ -164,7 +164,7 @@ func (ds *DiscoveryService) queryPeerForPeers(peer *Peer) ([]*Peer, error) {
 	var peerResponse struct {
 		Peers []*Peer `json:"peers"`
 	}
-	
+
 	if err := json.NewDecoder(resp.Body).Decode(&peerResponse); err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (ds *DiscoveryService) queryPeerForPeers(peer *Peer) ([]*Peer, error) {
 func (ds *DiscoveryService) discoverFromBootstrapNodes() {
 	bootstrapNodes := []string{
 		"bootstrap1.relativistic-sdk.com:8080",
-		"bootstrap2.relativistic-sdk.com:8080", 
+		"bootstrap2.relativistic-sdk.com:8080",
 		"bootstrap3.relativistic-sdk.com:8080",
 	}
 
@@ -234,7 +234,7 @@ func (ds *DiscoveryService) checkPeerHealth() {
 
 	for _, peer := range peers {
 		isHealthy := ds.pingPeer(peer)
-		
+
 		if isHealthy {
 			ds.updatePeerStatus(peer.Node.ID, PeerConnected)
 			peer.LastSeen = time.Now().UTC()
@@ -246,7 +246,7 @@ func (ds *DiscoveryService) checkPeerHealth() {
 
 func (ds *DiscoveryService) pingPeer(peer *Peer) bool {
 	client := &http.Client{Timeout: 5 * time.Second}
-	
+
 	url := fmt.Sprintf("http://%s/health", peer.Node.Address)
 	resp, err := client.Get(url)
 	if err != nil {
@@ -299,7 +299,7 @@ func (ds *DiscoveryService) AddPeer(peer *Peer) {
 	existingNode, err := ds.topologyManager.GetNode(peer.Node.ID)
 	if err != nil {
 		if err := ds.topologyManager.AddNode(peer.Node); err != nil {
-			ds.logger.Warn("Failed to add peer to topology", 
+			ds.logger.Warn("Failed to add peer to topology",
 				zap.String("peer_id", peer.Node.ID),
 				zap.Error(err),
 			)
@@ -368,7 +368,7 @@ func (ds *DiscoveryService) updatePeerStatus(peerID string, status PeerStatus) {
 	if peer, exists := ds.peers[peerID]; exists {
 		oldStatus := peer.Status
 		peer.Status = status
-		
+
 		if oldStatus != status {
 			ds.logger.Debug("Peer status updated",
 				zap.String("peer_id", peerID),
@@ -381,7 +381,7 @@ func (ds *DiscoveryService) updatePeerStatus(peerID string, status PeerStatus) {
 
 func (ds *DiscoveryService) GetDiscoveryStats() *DiscoveryStats {
 	peers := ds.GetAllPeers()
-	
+
 	stats := &DiscoveryStats{
 		TotalPeers:      len(peers),
 		Timestamp:       time.Now().UTC(),

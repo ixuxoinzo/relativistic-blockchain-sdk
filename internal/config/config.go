@@ -39,27 +39,27 @@ type RedisConfig struct {
 }
 
 type SecurityConfig struct {
-	JWTSecret     string        `yaml:"jwt_secret"`
-	TokenExpiry   time.Duration `yaml:"token_expiry"`
-	RateLimit     int           `yaml:"rate_limit"`
+	JWTSecret       string        `yaml:"jwt_secret"`
+	TokenExpiry     time.Duration `yaml:"token_expiry"`
+	RateLimit       int           `yaml:"rate_limit"`
 	RateLimitWindow time.Duration `yaml:"rate_limit_window"`
-	CORSOrigins   []string      `yaml:"cors_origins"`
+	CORSOrigins     []string      `yaml:"cors_origins"`
 }
 
 type MetricsConfig struct {
-	Enabled        bool          `yaml:"enabled"`
-	Port           int           `yaml:"port"`
-	Path           string        `yaml:"path"`
-	PushGateway    string        `yaml:"push_gateway"`
-	PushInterval   time.Duration `yaml:"push_interval"`
+	Enabled      bool          `yaml:"enabled"`
+	Port         int           `yaml:"port"`
+	Path         string        `yaml:"path"`
+	PushGateway  string        `yaml:"push_gateway"`
+	PushInterval time.Duration `yaml:"push_interval"`
 }
 
 type NetworkConfig struct {
-	BootstrapNodes []string      `yaml:"bootstrap_nodes"`
-	PeerDiscovery  bool          `yaml:"peer_discovery"`
-	MaxPeers       int           `yaml:"max_peers"`
-	ListenAddress  string        `yaml:"listen_address"`
-	ExternalIP     string        `yaml:"external_ip"`
+	BootstrapNodes []string `yaml:"bootstrap_nodes"`
+	PeerDiscovery  bool     `yaml:"peer_discovery"`
+	MaxPeers       int      `yaml:"max_peers"`
+	ListenAddress  string   `yaml:"listen_address"`
+	ExternalIP     string   `yaml:"external_ip"`
 }
 
 type LoggingConfig struct {

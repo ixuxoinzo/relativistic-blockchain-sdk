@@ -203,18 +203,18 @@ type ConsensusStats struct {
 
 func (cm *ConsensusManager) HealthCheck() *types.HealthStatus {
 	nodes := cm.topologyManager.GetAllNodes()
-	
+
 	status := &types.HealthStatus{
 		Status:    "healthy",
 		Timestamp: time.Now().UTC(),
 		Version:   "1.0.0",
 		NodeCount: len(nodes),
 		Components: map[string]string{
-			"timing_manager":   "healthy",
-			"offset_manager":   "healthy",
+			"timing_manager":       "healthy",
+			"offset_manager":       "healthy",
 			"consensus_calculator": "healthy",
 			"consensus_validator":  "healthy",
-			"synchronizer":     "healthy",
+			"synchronizer":         "healthy",
 		},
 	}
 

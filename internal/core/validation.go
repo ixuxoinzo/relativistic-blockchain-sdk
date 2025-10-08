@@ -186,12 +186,12 @@ func (ve *ValidationEngine) GetValidationStats(originNode string, since time.Tim
 	defer ve.mu.RUnlock()
 
 	stats := &ValidationStats{
-		TotalValidations: 0,
-		Successful:       0,
-		Failed:           0,
+		TotalValidations:  0,
+		Successful:        0,
+		Failed:            0,
 		AverageConfidence: 0.0,
-		StartTime:        since,
-		EndTime:          time.Now().UTC(),
+		StartTime:         since,
+		EndTime:           time.Now().UTC(),
 	}
 
 	var totalConfidence float64
@@ -217,12 +217,12 @@ func (ve *ValidationEngine) GetValidationStats(originNode string, since time.Tim
 }
 
 type ValidationStats struct {
-	TotalValidations int
-	Successful       int
-	Failed           int
+	TotalValidations  int
+	Successful        int
+	Failed            int
 	AverageConfidence float64
-	StartTime        time.Time
-	EndTime          time.Time
+	StartTime         time.Time
+	EndTime           time.Time
 }
 
 func (ve *ValidationEngine) DetectAnomalies(since time.Time) []*ValidationAnomaly {
@@ -230,7 +230,7 @@ func (ve *ValidationEngine) DetectAnomalies(since time.Time) []*ValidationAnomal
 	defer ve.mu.RUnlock()
 
 	var anomalies []*ValidationAnomaly
-	now := time.Now().UTC()
+	
 
 	for hash, record := range ve.validationHistory {
 		if record.ValidatedAt.Before(since) {

@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
- "strings"
 
 	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"

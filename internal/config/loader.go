@@ -70,35 +70,35 @@ func (cl *ConfigLoader) setupEnvironment() {
 
 func (cl *ConfigLoader) setupDefaults() {
 	defaultConfig := DefaultConfig()
-	
+
 	cl.viper.SetDefault("server.address", defaultConfig.Server.Address)
 	cl.viper.SetDefault("server.environment", defaultConfig.Server.Environment)
 	cl.viper.SetDefault("server.shutdown_timeout", defaultConfig.Server.ShutdownTimeout)
 	cl.viper.SetDefault("server.read_timeout", defaultConfig.Server.ReadTimeout)
 	cl.viper.SetDefault("server.write_timeout", defaultConfig.Server.WriteTimeout)
-	
+
 	cl.viper.SetDefault("database.host", defaultConfig.Database.Host)
 	cl.viper.SetDefault("database.port", defaultConfig.Database.Port)
 	cl.viper.SetDefault("database.ssl_mode", defaultConfig.Database.SSLMode)
-	
+
 	cl.viper.SetDefault("redis.address", defaultConfig.Redis.Address)
 	cl.viper.SetDefault("redis.pool_size", defaultConfig.Redis.PoolSize)
-	
+
 	cl.viper.SetDefault("security.token_expiry", defaultConfig.Security.TokenExpiry)
 	cl.viper.SetDefault("security.rate_limit", defaultConfig.Security.RateLimit)
 	cl.viper.SetDefault("security.rate_limit_window", defaultConfig.Security.RateLimitWindow)
 	cl.viper.SetDefault("security.cors_origins", defaultConfig.Security.CORSOrigins)
-	
+
 	cl.viper.SetDefault("metrics.enabled", defaultConfig.Metrics.Enabled)
 	cl.viper.SetDefault("metrics.port", defaultConfig.Metrics.Port)
 	cl.viper.SetDefault("metrics.path", defaultConfig.Metrics.Path)
 	cl.viper.SetDefault("metrics.push_interval", defaultConfig.Metrics.PushInterval)
-	
+
 	cl.viper.SetDefault("network.bootstrap_nodes", defaultConfig.Network.BootstrapNodes)
 	cl.viper.SetDefault("network.peer_discovery", defaultConfig.Network.PeerDiscovery)
 	cl.viper.SetDefault("network.max_peers", defaultConfig.Network.MaxPeers)
 	cl.viper.SetDefault("network.listen_address", defaultConfig.Network.ListenAddress)
-	
+
 	cl.viper.SetDefault("logging.level", defaultConfig.Logging.Level)
 	cl.viper.SetDefault("logging.format", defaultConfig.Logging.Format)
 	cl.viper.SetDefault("logging.output", defaultConfig.Logging.Output)
@@ -108,40 +108,40 @@ func (cl *ConfigLoader) validateConfig(config *Config) error {
 	if config.Server.Address == "" {
 		return fmt.Errorf("server address is required")
 	}
-	
+
 	if config.Security.JWTSecret == "" {
 		return fmt.Errorf("JWT secret is required")
 	}
-	
+
 	if len(config.Security.JWTSecret) < 32 {
 		return fmt.Errorf("JWT secret must be at least 32 characters")
 	}
-	
+
 	if config.Database.Host == "" {
 		return fmt.Errorf("database host is required")
 	}
-	
+
 	if config.Redis.Address == "" {
 		return fmt.Errorf("redis address is required")
 	}
-	
+
 	return nil
 }
 
 func Load() (*Config, error) {
 	loader := NewConfigLoader()
-	
+
 	configPath := os.Getenv("RELATIVISTIC_CONFIG_PATH")
 	if configPath == "" {
 		configPath = "configs/config.yaml"
 	}
-	
+
 	return loader.Load(configPath)
 }
 
 func LoadForEnvironment(environment string) (*Config, error) {
 	loader := NewConfigLoader()
-	
+
 	var configPath string
 	switch environment {
 	case "production":
@@ -153,10 +153,10 @@ func LoadForEnvironment(environment string) (*Config, error) {
 	default:
 		configPath = "configs/config.yaml"
 	}
-	
+
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		configPath = "config.yaml"
 	}
-	
+
 	return loader.Load(configPath)
 }

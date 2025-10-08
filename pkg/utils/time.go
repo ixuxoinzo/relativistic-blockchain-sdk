@@ -26,15 +26,15 @@ func (tu *TimeUtils) FormatDuration(d time.Duration) string {
 	if d < time.Microsecond {
 		return d.String()
 	}
-	
+
 	if d < time.Millisecond {
 		return d.Round(time.Microsecond).String()
 	}
-	
+
 	if d < time.Second {
 		return d.Round(time.Millisecond).String()
 	}
-	
+
 	return d.Round(time.Second).String()
 }
 
@@ -62,7 +62,7 @@ func (tu *TimeUtils) RoundToNearest(t time.Time, d time.Duration) time.Time {
 	if d <= 0 {
 		return t
 	}
-	
+
 	round := t.Round(d)
 	if round.After(t) {
 		return round.Add(-d)
@@ -74,7 +74,7 @@ func (tu *TimeUtils) CeilToNearest(t time.Time, d time.Duration) time.Time {
 	if d <= 0 {
 		return t
 	}
-	
+
 	round := t.Round(d)
 	if round.Before(t) {
 		return round.Add(d)
@@ -86,7 +86,7 @@ func (tu *TimeUtils) FloorToNearest(t time.Time, d time.Duration) time.Time {
 	if d <= 0 {
 		return t
 	}
-	
+
 	round := t.Round(d)
 	if round.After(t) {
 		return round.Add(-d)
@@ -98,12 +98,12 @@ func (tu *TimeUtils) CalculateAverageDuration(durations []time.Duration) time.Du
 	if len(durations) == 0 {
 		return 0
 	}
-	
+
 	var total time.Duration
 	for _, d := range durations {
 		total += d
 	}
-	
+
 	return total / time.Duration(len(durations))
 }
 
@@ -111,7 +111,7 @@ func (tu *TimeUtils) CalculateMaxDuration(durations []time.Duration) time.Durati
 	if len(durations) == 0 {
 		return 0
 	}
-	
+
 	max := durations[0]
 	for _, d := range durations {
 		if d > max {
@@ -125,7 +125,7 @@ func (tu *TimeUtils) CalculateMinDuration(durations []time.Duration) time.Durati
 	if len(durations) == 0 {
 		return 0
 	}
-	
+
 	min := durations[0]
 	for _, d := range durations {
 		if d < min {
@@ -170,15 +170,15 @@ func (tu *TimeUtils) CalculateJitter(durations []time.Duration) time.Duration {
 	if len(durations) < 2 {
 		return 0
 	}
-	
+
 	average := tu.CalculateAverageDuration(durations)
 	var sum time.Duration
-	
+
 	for _, d := range durations {
 		diff := tu.AbsDuration(d - average)
 		sum += diff
 	}
-	
+
 	return sum / time.Duration(len(durations))
 }
 
@@ -193,10 +193,10 @@ func (tu *TimeUtils) CalculateLatencyPercentile(durations []time.Duration, perce
 	if len(durations) == 0 {
 		return 0
 	}
-	
+
 	sorted := make([]time.Duration, len(durations))
 	copy(sorted, durations)
-	
+
 	for i := 0; i < len(sorted)-1; i++ {
 		for j := i + 1; j < len(sorted); j++ {
 			if sorted[i] > sorted[j] {
@@ -204,13 +204,13 @@ func (tu *TimeUtils) CalculateLatencyPercentile(durations []time.Duration, perce
 			}
 		}
 	}
-	
+
 	index := percentile * float64(len(sorted)-1)
 	lower := int(index)
-	
+
 	if lower >= len(sorted) {
 		return sorted[len(sorted)-1]
 	}
-	
+
 	return sorted[lower]
 }

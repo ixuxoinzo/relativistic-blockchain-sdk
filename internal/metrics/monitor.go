@@ -1,9 +1,9 @@
 package metrics
 
 import (
+	"fmt"
 	"sync"
 	"time"
-    "fmt"
 
 	"go.uber.org/zap"
 )
@@ -48,7 +48,7 @@ func (mm *MetricsMonitor) SetThreshold(metric string, threshold float64) {
 
 func (mm *MetricsMonitor) CheckThresholds() {
 	metrics := mm.collector.GetMetrics()
-	
+
 	for metric, threshold := range mm.thresholds {
 		if value, exists := metrics[metric]; exists {
 			var current float64
@@ -60,7 +60,7 @@ func (mm *MetricsMonitor) CheckThresholds() {
 			default:
 				continue
 			}
-			
+
 			if current > threshold {
 				mm.triggerAlert(metric, current, threshold)
 			} else {
@@ -72,10 +72,10 @@ func (mm *MetricsMonitor) CheckThresholds() {
 
 func (mm *MetricsMonitor) triggerAlert(metric string, current, threshold float64) {
 	alertID := metric + "_threshold_exceeded"
-	
+
 	mm.mu.Lock()
 	defer mm.mu.Unlock()
-	
+
 	if alert, exists := mm.alerts[alertID]; exists {
 		alert.Current = current
 		alert.Timestamp = time.Now().UTC()
@@ -90,7 +90,7 @@ func (mm *MetricsMonitor) triggerAlert(metric string, current, threshold float64
 			Timestamp: time.Now().UTC(),
 			Active:    true,
 		}
-		
+
 		mm.logger.Warn("Metric threshold exceeded",
 			zap.String("metric", metric),
 			zap.Float64("current", current),
@@ -101,10 +101,10 @@ func (mm *MetricsMonitor) triggerAlert(metric string, current, threshold float64
 
 func (mm *MetricsMonitor) resolveAlert(metric string) {
 	alertID := metric + "_threshold_exceeded"
-	
+
 	mm.mu.Lock()
 	defer mm.mu.Unlock()
-	
+
 	if alert, exists := mm.alerts[alertID]; exists && alert.Active {
 		alert.Active = false
 		mm.logger.Info("Metric alert resolved",
@@ -116,7 +116,7 @@ func (mm *MetricsMonitor) resolveAlert(metric string) {
 func (mm *MetricsMonitor) GetActiveAlerts() []*Alert {
 	mm.mu.RLock()
 	defer mm.mu.RUnlock()
-	
+
 	var activeAlerts []*Alert
 	for _, alert := range mm.alerts {
 		if alert.Active {
@@ -129,7 +129,7 @@ func (mm *MetricsMonitor) GetActiveAlerts() []*Alert {
 func (mm *MetricsMonitor) StartMonitoring(interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		mm.CheckThresholds()
 		mm.ReportMetrics()

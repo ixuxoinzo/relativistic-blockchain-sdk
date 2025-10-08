@@ -3,6 +3,7 @@ package tests
 import (
 	"testing"
 	"time"
+	"strconv"
 
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/internal/core"
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/internal/network"
@@ -32,8 +33,8 @@ func BenchmarkTimestampValidation(b *testing.B) {
 	engine := core.NewRelativisticEngine(topology, nil, logger)
 
 	block := &types.Block{
-		Hash:      "benchmark-block",
-		Timestamp: time.Now().UTC(),
+		Hash:       "benchmark-block",
+		Timestamp:  time.Now().UTC(),
 		ProposedBy: "node-1",
 		NodePosition: types.Position{
 			Latitude:  40.7128,
@@ -60,7 +61,7 @@ func generateTestNodes(count int) []*types.Node {
 	nodes := make([]*types.Node, count)
 	for i := 0; i < count; i++ {
 		nodes[i] = &types.Node{
-			ID:       string(i),
+			ID:      "node-" + strconv.Itoa(i),
 			Position: types.Position{Latitude: float64(i), Longitude: float64(i), Altitude: 0},
 			Address:  "node.example.com:8080",
 			Metadata: types.Metadata{Region: "test", Provider: "test", Version: "1.0.0"},

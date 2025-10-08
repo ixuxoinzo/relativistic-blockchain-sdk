@@ -5,23 +5,16 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-)
+        "github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
 
-type MetricsCollector struct {
-	engine          *RelativisticEngine
-	logger          *zap.Logger
-	mu              sync.RWMutex
-	metricsHistory  []*EngineMetrics
-	maxHistorySize  int
-	collectionInterval time.Duration
-}
+)
 
 func NewMetricsCollector(engine *RelativisticEngine, logger *zap.Logger) *MetricsCollector {
 	return &MetricsCollector{
-		engine:            engine,
-		logger:            logger,
-		metricsHistory:    make([]*EngineMetrics, 0),
-		maxHistorySize:    1000,
+		engine:             engine,
+		logger:             logger,
+		metricsHistory: make([]*types.EngineMetrics, 0),
+		maxHistorySize:     1000,
 		collectionInterval: time.Minute,
 	}
 }
@@ -56,7 +49,7 @@ func (mc *MetricsCollector) collectMetrics() {
 	)
 }
 
-func (mc *MetricsCollector) GetMetricsHistory(limit int) []*EngineMetrics {
+func (mc *MetricsCollector) GetMetricsHistory(limit int) []*types.EngineMetrics {
 	mc.mu.RLock()
 	defer mc.mu.RUnlock()
 
@@ -81,7 +74,7 @@ func (mc *MetricsCollector) GetMetricsSummary() *MetricsSummary {
 	}
 
 	summary := &MetricsSummary{
-		CollectionPeriod: time.Since(mc.metricsHistory[0].CollectionTime),
+		CollectionPeriod: time.Since(mc.metricsHistory[0].StartTime),
 		DataPoints:       len(mc.metricsHistory),
 	}
 
@@ -112,19 +105,29 @@ type MetricsSummary struct {
 	TotalValidations      int64
 	TotalCacheHits        int64
 	TotalCacheMisses      int64
-	TotalErrors          int64
+	TotalErrors           int64
 	CalculationsPerMinute float64
 	ValidationsPerMinute  float64
-	CacheHitRate         float64
-	CollectionPeriod     time.Duration
-	DataPoints           int
+	CacheHitRate          float64
+	CollectionPeriod      time.Duration
+	DataPoints            int
 }
 
 type EngineMetrics struct {
 	CalculationsTotal int64
 	ValidationsTotal  int64
-	CacheHits        int64
-	CacheMisses      int64
-	ErrorsTotal      int64
-	CollectionTime   time.Time
+	CacheHits         int64
+	CacheMisses       int64
+	ErrorsTotal       int64
+	CollectionTime    time.Time
 }
+
+type MetricsCollector struct {
+    engine             *RelativisticEngine
+    logger             *zap.Logger
+    mu                 sync.RWMutex
+    metricsHistory     []*types.EngineMetrics 
+    maxHistorySize     int
+    collectionInterval time.Duration
+}
+

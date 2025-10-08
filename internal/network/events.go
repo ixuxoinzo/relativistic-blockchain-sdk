@@ -48,10 +48,10 @@ type WebhookConfig struct {
 
 func NewEventManager(logger *zap.Logger) *EventManager {
 	return &EventManager{
-		logger:      logger,
-		subscribers: make(map[string]map[types.EventType][]EventCallback),
+		logger:       logger,
+		subscribers:  make(map[string]map[types.EventType][]EventCallback),
 		eventHistory: make([]*EventRecord, 0),
-		maxHistory:  10000,
+		maxHistory:   10000,
 		webhookConfig: &WebhookConfig{
 			Enabled: false,
 			Timeout: 10 * time.Second,
@@ -242,12 +242,12 @@ func (em *EventManager) GetEventStatistics(since time.Time) *EventStatistics {
 }
 
 type EventStatistics struct {
-	TotalEvents       int                          `json:"total_events"`
-	UnprocessedEvents int                          `json:"unprocessed_events"`
-	Counts            map[types.EventType]int      `json:"counts_by_type"`
-	Severities        map[types.AlertSeverity]int  `json:"counts_by_severity"`
-	StartTime         time.Time                    `json:"start_time"`
-	EndTime           time.Time                    `json:"end_time"`
+	TotalEvents       int                         `json:"total_events"`
+	UnprocessedEvents int                         `json:"unprocessed_events"`
+	Counts            map[types.EventType]int     `json:"counts_by_type"`
+	Severities        map[types.AlertSeverity]int `json:"counts_by_severity"`
+	StartTime         time.Time                   `json:"start_time"`
+	EndTime           time.Time                   `json:"end_time"`
 }
 
 func (em *EventManager) ConfigureWebhook(config *WebhookConfig) {

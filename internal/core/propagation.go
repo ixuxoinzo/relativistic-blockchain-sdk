@@ -199,7 +199,7 @@ func (pm *PropagationManager) GetPropagationHistory(source, target string, limit
 	var history []*PropagationHistory
 	count := 0
 
-	for key, entry := range pm.history {
+	for _, entry := range pm.history {
 		if entry.SourceNode == source && entry.TargetNode == target {
 			history = append(history, entry)
 			count++
@@ -224,7 +224,7 @@ func (pm *PropagationManager) calculateDistance(pos1, pos2 types.Position) (floa
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
 		math.Cos(lat1)*math.Cos(lat2)*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
-	
+
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	distance := types.EarthRadius * c
 
@@ -242,8 +242,8 @@ func (pm *PropagationManager) GetPropagationStats(source, target string) *Propag
 
 	stats := &PropagationStats{
 		TotalCalculations: len(history),
-		SourceNode:       source,
-		TargetNode:       target,
+		SourceNode:        source,
+		TargetNode:        target,
 	}
 
 	var totalDelay time.Duration

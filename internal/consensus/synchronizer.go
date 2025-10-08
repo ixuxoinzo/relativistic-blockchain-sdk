@@ -18,13 +18,13 @@ type Synchronizer struct {
 }
 
 type SyncStatus struct {
-	NodeID         string        `json:"node_id"`
-	LastSync       time.Time     `json:"last_sync"`
-	SyncCount      int           `json:"sync_count"`
-	LastOffset     time.Duration `json:"last_offset"`
-	AverageOffset  time.Duration `json:"average_offset"`
-	Status         string        `json:"status"`
-	LastError      string        `json:"last_error,omitempty"`
+	NodeID        string        `json:"node_id"`
+	LastSync      time.Time     `json:"last_sync"`
+	SyncCount     int           `json:"sync_count"`
+	LastOffset    time.Duration `json:"last_offset"`
+	AverageOffset time.Duration `json:"average_offset"`
+	Status        string        `json:"status"`
+	LastError     string        `json:"last_error,omitempty"`
 }
 
 func NewSynchronizer(offsetManager *OffsetManager, logger *zap.Logger) *Synchronizer {
@@ -80,7 +80,7 @@ func (s *Synchronizer) SyncAllNodes() {
 			defer wg.Done()
 
 			err := s.SyncNode(id)
-			
+
 			mu.Lock()
 			results[id] = err
 			mu.Unlock()
@@ -152,7 +152,7 @@ func (s *Synchronizer) updateSyncStatus(nodeID string, status string, offset tim
 	if offset != 0 {
 		syncStatus.LastOffset = offset
 		syncStatus.SyncCount++
-		
+
 		if syncStatus.SyncCount == 1 {
 			syncStatus.AverageOffset = offset
 		} else {
@@ -190,9 +190,9 @@ func (s *Synchronizer) GetSyncStats() *SyncStats {
 	defer s.mu.RUnlock()
 
 	stats := &SyncStats{
-		TotalNodes:    len(s.syncStatus),
-		Timestamp:     time.Now().UTC(),
-		StatusCounts:  make(map[string]int),
+		TotalNodes:   len(s.syncStatus),
+		Timestamp:    time.Now().UTC(),
+		StatusCounts: make(map[string]int),
 	}
 
 	var totalOffset time.Duration
@@ -219,13 +219,13 @@ func (s *Synchronizer) GetSyncStats() *SyncStats {
 }
 
 type SyncStats struct {
-	TotalNodes    int                    `json:"total_nodes"`
-	SyncedNodes   int                    `json:"synced_nodes"`
-	FailedNodes   int                    `json:"failed_nodes"`
-	PendingNodes  int                    `json:"pending_nodes"`
-	AverageOffset time.Duration          `json:"average_offset"`
-	StatusCounts  map[string]int         `json:"status_counts"`
-	Timestamp     time.Time              `json:"timestamp"`
+	TotalNodes    int            `json:"total_nodes"`
+	SyncedNodes   int            `json:"synced_nodes"`
+	FailedNodes   int            `json:"failed_nodes"`
+	PendingNodes  int            `json:"pending_nodes"`
+	AverageOffset time.Duration  `json:"average_offset"`
+	StatusCounts  map[string]int `json:"status_counts"`
+	Timestamp     time.Time      `json:"timestamp"`
 }
 
 func (s *Synchronizer) CleanupStaleStatus() int {

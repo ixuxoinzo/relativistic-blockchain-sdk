@@ -1,7 +1,7 @@
 package core
 
 import (
-	"fmt"
+
 	"sync"
 	"time"
 
@@ -9,17 +9,17 @@ import (
 )
 
 type Cache struct {
-	items    map[string]*CacheItem
-	mu       sync.RWMutex
-	logger   *zap.Logger
-	ttl      time.Duration
-	maxSize  int
+	items   map[string]*CacheItem
+	mu      sync.RWMutex
+	logger  *zap.Logger
+	ttl     time.Duration
+	maxSize int
 }
 
 type CacheItem struct {
-	Value      interface{}
-	ExpiresAt  time.Time
-	CreatedAt  time.Time
+	Value       interface{}
+	ExpiresAt   time.Time
+	CreatedAt   time.Time
 	AccessCount int
 }
 
@@ -41,9 +41,9 @@ func (c *Cache) Set(key string, value interface{}) {
 	}
 
 	c.items[key] = &CacheItem{
-		Value:      value,
-		ExpiresAt:  time.Now().Add(c.ttl),
-		CreatedAt:  time.Now(),
+		Value:       value,
+		ExpiresAt:   time.Now().Add(c.ttl),
+		CreatedAt:   time.Now(),
 		AccessCount: 1,
 	}
 

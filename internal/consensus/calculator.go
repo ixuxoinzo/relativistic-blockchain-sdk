@@ -7,7 +7,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
 )
 
 type ConsensusCalculator struct {
@@ -19,13 +18,13 @@ type ConsensusCalculator struct {
 }
 
 type CalculationResult struct {
-	OptimalBlockTime  time.Duration   `json:"optimal_block_time"`
-	MaxPropagation    time.Duration   `json:"max_propagation_delay"`
-	SafetyMargin      time.Duration   `json:"safety_margin"`
-	NodeOffsets       map[string]time.Duration `json:"node_offsets"`
-	Confidence        float64         `json:"confidence"`
-	CalculatedAt      time.Time       `json:"calculated_at"`
-	ValidatorCount    int             `json:"validator_count"`
+	OptimalBlockTime time.Duration            `json:"optimal_block_time"`
+	MaxPropagation   time.Duration            `json:"max_propagation_delay"`
+	SafetyMargin     time.Duration            `json:"safety_margin"`
+	NodeOffsets      map[string]time.Duration `json:"node_offsets"`
+	Confidence       float64                  `json:"confidence"`
+	CalculatedAt     time.Time                `json:"calculated_at"`
+	ValidatorCount   int                      `json:"validator_count"`
 }
 
 func NewConsensusCalculator(timingManager *TimingManager, offsetManager *OffsetManager, logger *zap.Logger) *ConsensusCalculator {
@@ -176,10 +175,10 @@ func (cc *ConsensusCalculator) CalculateTimeoutParameters(validatorNodes []strin
 	}
 
 	params := &TimeoutParameters{
-		ProposalTimeout:    result.MaxPropagation * 2,
-		VoteTimeout:        result.MaxPropagation + result.SafetyMargin,
-		CommitTimeout:      result.MaxPropagation * 3,
-		ViewChangeTimeout:  result.MaxPropagation * 5,
+		ProposalTimeout:   result.MaxPropagation * 2,
+		VoteTimeout:       result.MaxPropagation + result.SafetyMargin,
+		CommitTimeout:     result.MaxPropagation * 3,
+		ViewChangeTimeout: result.MaxPropagation * 5,
 	}
 
 	cc.applyTimeoutLimits(params)
@@ -223,10 +222,10 @@ func (cc *ConsensusCalculator) CalculateFaultTolerance(validatorNodes []string) 
 	}
 
 	tolerance := &FaultTolerance{
-		TotalNodes:    n,
+		TotalNodes:      n,
 		ByzantineFaults: (n - 1) / 3,
-		CrashFaults:   (n - 1) / 2,
-		QuorumSize:    (2 * n) / 3,
+		CrashFaults:     (n - 1) / 2,
+		QuorumSize:      (2 * n) / 3,
 	}
 
 	if tolerance.ByzantineFaults < 0 {

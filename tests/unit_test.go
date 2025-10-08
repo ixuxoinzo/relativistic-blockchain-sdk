@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/internal/core"
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
 
@@ -50,8 +50,8 @@ func TestValidationEngine(t *testing.T) {
 
 	t.Run("ValidateBlock", func(t *testing.T) {
 		block := &types.Block{
-			Hash:      "test-block",
-			Timestamp: time.Now().UTC().Add(-time.Second),
+			Hash:       "test-block",
+			Timestamp:  time.Now().UTC().Add(-time.Second),
 			ProposedBy: "test-node",
 			NodePosition: types.Position{
 				Latitude:  40.7128,

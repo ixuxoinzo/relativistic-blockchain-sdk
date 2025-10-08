@@ -1,9 +1,8 @@
-
 package network
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
 	"sync"
 	"time"
 
@@ -25,22 +24,22 @@ type HealthMonitor struct {
 }
 
 type HealthStatus struct {
-	OverallStatus  string                 `json:"overall_status"`
-	Timestamp      time.Time              `json:"timestamp"`
-	Components     map[string]string      `json:"components"`
-	Metrics        *HealthMetrics         `json:"metrics"`
-	ActiveAlerts   int                    `json:"active_alerts"`
-	LastChecked    time.Time              `json:"last_checked"`
+	OverallStatus string            `json:"overall_status"`
+	Timestamp     time.Time         `json:"timestamp"`
+	Components    map[string]string `json:"components"`
+	Metrics       *HealthMetrics    `json:"metrics"`
+	ActiveAlerts  int               `json:"active_alerts"`
+	LastChecked   time.Time         `json:"last_checked"`
 }
 
 type HealthMetrics struct {
-	TotalNodes          int     `json:"total_nodes"`
-	ActiveNodes         int     `json:"active_nodes"`
-	NetworkLatency      float64 `json:"network_latency_ms"`
-	PacketLoss          float64 `json:"packet_loss"`
-	ConnectionHealth    float64 `json:"connection_health"`
-	PeersDiscovered     int     `json:"peers_discovered"`
-	ActiveConnections   int     `json:"active_connections"`
+	TotalNodes        int     `json:"total_nodes"`
+	ActiveNodes       int     `json:"active_nodes"`
+	NetworkLatency    float64 `json:"network_latency_ms"`
+	PacketLoss        float64 `json:"packet_loss"`
+	ConnectionHealth  float64 `json:"connection_health"`
+	PeersDiscovered   int     `json:"peers_discovered"`
+	ActiveConnections int     `json:"active_connections"`
 }
 
 func NewHealthMonitor(topology *TopologyManager, latency *LatencyMonitor, discovery *DiscoveryService, peering *PeeringManager, logger *zap.Logger) *HealthMonitor {
@@ -195,8 +194,8 @@ func (hm *HealthMonitor) validateConnectivity() *ConnectivityReport {
 	nodes := hm.topologyManager.GetActiveNodes()
 	if len(nodes) < 2 {
 		return &ConnectivityReport{
-			TotalNodes:           len(nodes),
-			ConnectedPairs:       0,
+			TotalNodes:             len(nodes),
+			ConnectedPairs:         0,
 			ConnectivityPercentage: 0.0,
 		}
 	}
@@ -217,8 +216,8 @@ func (hm *HealthMonitor) validateConnectivity() *ConnectivityReport {
 	}
 
 	return &ConnectivityReport{
-		TotalNodes:            len(nodes),
-		ConnectedPairs:        connectedPairs,
+		TotalNodes:             len(nodes),
+		ConnectedPairs:         connectedPairs,
 		ConnectivityPercentage: connectivityPercentage,
 	}
 }
@@ -254,7 +253,7 @@ func (hm *HealthMonitor) GetHealthStatus() *HealthStatus {
 
 func (hm *HealthMonitor) GetTypesHealthStatus() *types.HealthStatus {
 	healthStatus := hm.GetHealthStatus()
-	
+
 	return &types.HealthStatus{
 		Status:    healthStatus.OverallStatus,
 		Timestamp: healthStatus.Timestamp,
@@ -262,7 +261,7 @@ func (hm *HealthMonitor) GetTypesHealthStatus() *types.HealthStatus {
 		NodeCount: healthStatus.Metrics.TotalNodes,
 		Components: map[string]string{
 			"topology":  healthStatus.Components["topology"],
-			"latency":   healthStatus.Components["latency"], 
+			"latency":   healthStatus.Components["latency"],
 			"discovery": healthStatus.Components["discovery"],
 			"peering":   healthStatus.Components["peering"],
 		},
@@ -274,7 +273,7 @@ func (hm *HealthMonitor) DeepHealthCheck() *DetailedHealthReport {
 	defer hm.mu.Unlock()
 
 	report := &DetailedHealthReport{
-		Timestamp:      time.Now().UTC(),
+		Timestamp:       time.Now().UTC(),
 		ComponentChecks: make([]*ComponentHealth, 0),
 		Recommendations: make([]string, 0),
 	}
@@ -402,7 +401,7 @@ func (hm *HealthMonitor) generateRecommendations(report *DetailedHealthReport) {
 		case "critical":
 			switch component.Name {
 			case "topology":
-				report.Recommendations = append(report.Recommendations, 
+				report.Recommendations = append(report.Recommendations,
 					"Add more nodes to the network topology",
 					"Check node registration process")
 			case "latency":
@@ -458,7 +457,7 @@ func (hm *HealthMonitor) HTTPHealthHandler(w http.ResponseWriter, r *http.Reques
 	healthStatus := hm.GetHealthStatus()
 
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	if healthStatus.OverallStatus == "critical" {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	} else if healthStatus.OverallStatus == "degraded" {
@@ -487,10 +486,4 @@ type ComponentHealth struct {
 	Status  string                 `json:"status"`
 	Message string                 `json:"message,omitempty"`
 	Metrics map[string]interface{} `json:"metrics"`
-}
-
-type ConnectivityReport struct {
-	TotalNodes            int                `json:"total_nodes"`
-	ConnectedPairs        int                `json:"connected_pairs"`
-	ConnectivityPercentage float64           `json:"connectivity_percentage"`
 }

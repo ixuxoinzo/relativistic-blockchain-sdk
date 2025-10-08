@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-   "crypto/hmac"
 	"fmt"
 )
 
@@ -47,10 +47,10 @@ func (cu *CryptoUtils) GenerateUUID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	bytes[6] = (bytes[6] & 0x0f) | 0x40
 	bytes[8] = (bytes[8] & 0x3f) | 0x80
-	
+
 	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
 		bytes[0:4],
 		bytes[4:6],
@@ -113,12 +113,12 @@ func (cu *CryptoUtils) ValidateAPIKey(apiKey string) bool {
 	if len(apiKey) != 45 || apiKey[:3] != "rk_" {
 		return false
 	}
-	
+
 	decoded, err := cu.Base64Decode(apiKey[3:])
 	if err != nil {
 		return false
 	}
-	
+
 	return len(decoded) == 32
 }
 

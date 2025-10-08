@@ -11,17 +11,17 @@ const (
 )
 
 const (
-	EarthMass             = 5.9722e24
-	EarthRadius           = 6371000.0
-	EarthGravity          = 9.80665
-	SolarMass             = 1.98847e30
-	SolarRadius           = 6.957e8
+	EarthMass    = 5.9722e24
+	EarthRadius  = 6371000.0
+	EarthGravity = 9.80665
+	SolarMass    = 1.98847e30
+	SolarRadius  = 6.957e8
 )
 
 const (
-	AstronomicalUnit     = 1.495978707e11
-	LightYear            = 9.4607304725808e15
-	Parsec               = 3.0856775814913673e16
+	AstronomicalUnit = 1.495978707e11
+	LightYear        = 9.4607304725808e15
+	Parsec           = 3.0856775814913673e16
 )
 
 const (

@@ -154,7 +154,7 @@ func (nm *NetworkManager) ValidateNetworkConnectivity() *ConnectivityReport {
 
 	for i, source := range nodes {
 		report.ConnectivityMap[source.ID] = make(map[string]bool)
-		
+
 		for j, target := range nodes {
 			if i == j {
 				continue
@@ -162,9 +162,9 @@ func (nm *NetworkManager) ValidateNetworkConnectivity() *ConnectivityReport {
 
 			measurement := nm.GetLatencyMeasurement(source.ID, target.ID)
 			isConnected := measurement != nil && measurement.Actual > 0
-			
+
 			report.ConnectivityMap[source.ID][target.ID] = isConnected
-			
+
 			if isConnected {
 				report.ConnectedPairs++
 			}
@@ -180,18 +180,18 @@ func (nm *NetworkManager) ValidateNetworkConnectivity() *ConnectivityReport {
 }
 
 type ConnectivityReport struct {
-	Timestamp            time.Time
-	TotalNodes           int
-	ConnectedPairs       int
-	ConnectivityPercentage float64
-	ConnectivityMap      map[string]map[string]bool
+	Timestamp              time.Time                  `json:"timestamp"`
+	TotalNodes             int                        `json:"total_nodes"`
+	ConnectedPairs         int                        `json:"connected_pairs"`
+	ConnectivityPercentage float64                    `json:"connectivity_percentage"`
+	ConnectivityMap        map[string]map[string]bool `json:"connectivity_map"`
 }
 
 func (nm *NetworkManager) GetTopologyGraph() *TopologyGraph {
 	nodes := nm.GetAllNodes()
 	graph := &TopologyGraph{
-		Nodes: make([]*TopologyNode, len(nodes)),
-		Links: make([]*TopologyLink, 0),
+		Nodes:     make([]*TopologyNode, len(nodes)),
+		Links:     make([]*TopologyLink, 0),
 		Timestamp: time.Now().UTC(),
 	}
 
@@ -207,8 +207,8 @@ func (nm *NetworkManager) GetTopologyGraph() *TopologyGraph {
 	measurements := nm.GetAllLatencyMeasurements()
 	for _, measurement := range measurements {
 		graph.Links = append(graph.Links, &TopologyLink{
-			Source: measurement.SourceNode,
-			Target: measurement.TargetNode,
+			Source:  measurement.SourceNode,
+			Target:  measurement.TargetNode,
 			Latency: measurement.Actual,
 			Jitter:  measurement.Jitter,
 		})
@@ -231,8 +231,8 @@ type TopologyNode struct {
 }
 
 type TopologyLink struct {
-	Source string
-	Target string
+	Source  string
+	Target  string
 	Latency time.Duration
 	Jitter  time.Duration
 }

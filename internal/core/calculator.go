@@ -7,8 +7,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
 	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/relativistic"
+	"github.com/ixuxoinzo/relativistic-blockchain-sdk/pkg/types"
 )
 
 type Calculator struct {
@@ -21,6 +21,8 @@ func NewCalculator(logger *zap.Logger) *Calculator {
 	}
 }
 
+// ========== BASIC LIGHT & NETWORK DELAYS ==========
+
 func (c *Calculator) CalculateLightDelay(distance float64) time.Duration {
 	delaySeconds := distance / types.SpeedOfLight
 	return time.Duration(delaySeconds * float64(time.Second))
@@ -31,13 +33,17 @@ func (c *Calculator) CalculateNetworkDelay(distance float64, networkFactor float
 	return time.Duration(float64(lightDelay) * networkFactor)
 }
 
+// ========== RELATIVISTIC & PHYSICAL DELAYS ==========
+
 func (c *Calculator) CalculateRelativisticDelay(distance float64, velocity float64, networkFactor float64) time.Duration {
-    lightDelay := distance / types.SpeedOfLight
-    realisticDelay := lightDelay * networkFactor
-    realisticDelayDuration := time.Duration(realisticDelay * float64(time.Second))  
-    relativisticDelay := relativistic.ApplyTimeDilation(realisticDelayDuration, velocity)
-    return relativisticDelay 
+	lightDelay := distance / types.SpeedOfLight
+	realisticDelay := lightDelay * networkFactor
+	realisticDelayDuration := time.Duration(realisticDelay * float64(time.Second))
+	relativisticDelay := relativistic.ApplyTimeDilation(realisticDelayDuration, velocity)
+	return relativisticDelay
 }
+
+// ========== GEOGRAPHIC DISTANCES ==========
 
 func (c *Calculator) CalculateGreatCircleDistance(pos1, pos2 types.Position) (float64, error) {
 	lat1 := pos1.Latitude * math.Pi / 180
@@ -49,21 +55,21 @@ func (c *Calculator) CalculateGreatCircleDistance(pos1, pos2 types.Position) (fl
 	dLon := lon2 - lon1
 
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
-		math.Cos(lat1)*math.Cos(lat2)*
-			math.Sin(dLon/2)*math.Sin(dLon/2)
-	
+		math.Cos(lat1)*math.Cos(lat2)*math.Sin(dLon/2)*math.Sin(dLon/2)
+
 	cValue := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	distance := types.EarthRadius * cValue
 
 	altDiff := math.Abs(pos1.Altitude - pos2.Altitude)
-	totalDistance := math.Sqrt(math.Pow(distance, 2) + math.Pow(altDiff, 2))
-
+	totalDistance := math.Sqrt(distance*distance + altDiff*altDiff)
 	return totalDistance, nil
 }
 
+// ========== BLOCK TIME OPTIMIZATION ==========
+
 func (c *Calculator) CalculateOptimalBlockTime(delays []time.Duration, safetyFactor float64) time.Duration {
 	if len(delays) == 0 {
-		return time.Second * 2
+		return 2 * time.Second
 	}
 
 	maxDelay := delays[0]
@@ -74,50 +80,48 @@ func (c *Calculator) CalculateOptimalBlockTime(delays []time.Duration, safetyFac
 	}
 
 	optimalTime := time.Duration(float64(maxDelay) * safetyFactor)
-
-	minBlockTime := time.Second * 2
-	if optimalTime < minBlockTime {
-		optimalTime = minBlockTime
+	if optimalTime < 2*time.Second {
+		optimalTime = 2 * time.Second
 	}
-
-	maxBlockTime := time.Minute * 10
-	if optimalTime > maxBlockTime {
-		optimalTime = maxBlockTime
+	if optimalTime > 10*time.Minute {
+		optimalTime = 10 * time.Minute
 	}
-
 	return optimalTime
 }
 
-func (c *Calculator) CalculateConfidenceScore(expectedDelay, actualDiff time.Duration, maxAcceptable time.Duration) float64 {
+// ========== CONFIDENCE SCORING ==========
+
+func (c *Calculator) CalculateConfidenceScore(expectedDelay, actualDiff, maxAcceptable time.Duration) float64 {
 	absDiff := actualDiff
 	if actualDiff < 0 {
 		absDiff = -actualDiff
 	}
-
 	if absDiff > maxAcceptable {
 		return 0.0
 	}
-
 	confidence := 1.0 - (float64(absDiff) / float64(maxAcceptable))
 	if confidence < 0 {
 		return 0.0
 	}
-
 	return confidence
 }
+
+// ========== RELATIVISTIC FACTORS ==========
 
 func (c *Calculator) CalculateTimeDilationFactor(velocity float64) float64 {
 	return relativistic.CalculateLorentzFactor(velocity)
 }
 
 func (c *Calculator) CalculateGravitationalTimeDilation(gravityFieldStrength, height float64) float64 {
-    if gravityFieldStrength == 0 {
-        return 1.0
-    }
-    speedOfLight := types.SpeedOfLight 
-    phi := gravityFieldStrength * height
-    return 1.0 + phi/(speedOfLight*speedOfLight)
+	if gravityFieldStrength == 0 {
+		return 1.0
+	}
+	speedOfLight := types.SpeedOfLight
+	phi := gravityFieldStrength * height
+	return 1.0 + phi/(speedOfLight*speedOfLight)
 }
+
+// ========== SATELLITE COMMUNICATION DELAY ==========
 
 func (c *Calculator) CalculateSatelliteDelay(satellitePos, groundStationPos types.Position, satelliteVelocity float64) (time.Duration, error) {
 	distance, err := c.CalculateGreatCircleDistance(satellitePos, groundStationPos)
@@ -126,24 +130,26 @@ func (c *Calculator) CalculateSatelliteDelay(satellitePos, groundStationPos type
 	}
 
 	lightDelay := distance / types.SpeedOfLight
-	relativisticDelay := relativistic.ApplyTimeDilation(lightDelay, satelliteVelocity)
-	totalDelay := relativisticDelay * 1.01
-
-	return time.Duration(totalDelay * float64(time.Second)), nil
+	relativisticDelay := relativistic.ApplyTimeDilation(time.Duration(lightDelay*float64(time.Second)), satelliteVelocity)
+	totalDelay := time.Duration(float64(relativisticDelay) * 1.01)
+	return totalDelay, nil
 }
 
-func (c *Calculator) CalculateInterplanetaryDelayWithOrbits(planetA, planetB string, timeOfFlight time.Time) (time.Duration, error) {
-	distance, exists := types.PlanetaryDistances[planetA+"-"+planetB]
-	if !exists {
-		return 0, fmt.Errorf("planetary distance not found for %s-%s", planetA, planetB)
-	}
+// ========== INTERPLANETARY COMMUNICATION DELAY ==========
 
+func (c *Calculator) CalculateInterplanetaryDelayWithOrbits(planetA, planetB string, timeOfFlight time.Time) (time.Duration, error) {
+	key := planetA + "-" + planetB
+	distance, exists := types.PlanetaryDistances[key]
+	if !exists {
+		return 0, fmt.Errorf("planetary distance not found for %s", key)
+	}
 	distanceMeters := distance * 1000
 	delaySeconds := distanceMeters / types.SpeedOfLight
 	totalDelay := delaySeconds * 1.05
-
 	return time.Duration(totalDelay * float64(time.Second)), nil
 }
+
+// ========== STATISTICAL ANALYSIS ==========
 
 type DelayStatistics struct {
 	MinDelay    time.Duration
@@ -158,61 +164,55 @@ func (c *Calculator) CalculateDelayStatistics(delays []time.Duration) *DelayStat
 		return &DelayStatistics{}
 	}
 
-	delayFloats := make([]float64, len(delays))
-	for i, delay := range delays {
-		delayFloats[i] = float64(delay)
-	}
-
-	minDelay := delays[0]
-	maxDelay := delays[0]
+	minDelay, maxDelay := delays[0], delays[0]
 	sum := time.Duration(0)
 
-	for _, delay := range delays {
-		if delay < minDelay {
-			minDelay = delay
+	for _, d := range delays {
+		if d < minDelay {
+			minDelay = d
 		}
-		if delay > maxDelay {
-			maxDelay = delay
+		if d > maxDelay {
+			maxDelay = d
 		}
-		sum += delay
+		sum += d
 	}
 
-	meanDelay := sum / time.Duration(len(delays))
-
+	mean := sum / time.Duration(len(delays))
 	var variance float64
-	for _, delay := range delays {
-		diff := float64(delay - meanDelay)
+	for _, d := range delays {
+		diff := float64(d - mean)
 		variance += diff * diff
 	}
 	variance /= float64(len(delays))
-	stdDev := time.Duration(math.Sqrt(float64(variance)))
-
-	medianDelay := c.calculateMedian(delays)
+	stdDev := time.Duration(math.Sqrt(variance))
+	median := c.calculateMedian(delays)
 
 	return &DelayStatistics{
 		MinDelay:    minDelay,
 		MaxDelay:    maxDelay,
-		MeanDelay:   meanDelay,
-		MedianDelay: medianDelay,
+		MeanDelay:   mean,
+		MedianDelay: median,
 		StdDev:      stdDev,
 	}
 }
 
 func (c *Calculator) calculateMedian(delays []time.Duration) time.Duration {
-	sorted := make([]time.Duration, len(delays))
+	n := len(delays)
+	if n == 0 {
+		return 0
+	}
+	sorted := make([]time.Duration, n)
 	copy(sorted, delays)
-
-	for i := 0; i < len(sorted)-1; i++ {
-		for j := i + 1; j < len(sorted); j++ {
+	for i := 0; i < n-1; i++ {
+		for j := i + 1; j < n; j++ {
 			if sorted[i] > sorted[j] {
 				sorted[i], sorted[j] = sorted[j], sorted[i]
 			}
 		}
 	}
-
-	mid := len(sorted) / 2
-	if len(sorted)%2 == 0 {
-		return (sorted[mid-1] + sorted[mid]) / 2
+	if n%2 == 0 {
+		return (sorted[n/2-1] + sorted[n/2]) / 2
 	}
-	return sorted[mid]
+	return sorted[n/2]
 }
+

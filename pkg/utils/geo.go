@@ -24,7 +24,7 @@ func (gu *GeoUtils) CalculateGreatCircleDistance(pos1, pos2 types.Position) floa
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
 		math.Cos(lat1)*math.Cos(lat2)*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
-	
+
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	distance := types.EarthRadius * c
 
@@ -48,11 +48,11 @@ func (gu *GeoUtils) CalculateBearing(pos1, pos2 types.Position) float64 {
 
 	bearing := math.Atan2(y, x)
 	bearing = gu.RadiansToDegrees(bearing)
-	
+
 	if bearing < 0 {
 		bearing += 360
 	}
-	
+
 	return bearing
 }
 
@@ -69,7 +69,7 @@ func (gu *GeoUtils) CalculateMidpoint(pos1, pos2 types.Position) types.Position 
 		math.Sin(lat1)+math.Sin(lat2),
 		math.Sqrt(math.Pow(math.Cos(lat1)+Bx, 2)+By*By),
 	)
-	
+
 	midLon := lon1 + math.Atan2(By, math.Cos(lat1)+Bx)
 
 	midAltitude := (pos1.Altitude + pos2.Altitude) / 2
@@ -223,7 +223,7 @@ func (gu *GeoUtils) CalculateRegion(positions []types.Position) string {
 	}
 
 	centroid := gu.CalculateCentroid(positions)
-	
+
 	regions := map[string]struct {
 		minLat, maxLat float64
 		minLon, maxLon float64

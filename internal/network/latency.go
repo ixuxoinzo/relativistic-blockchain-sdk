@@ -2,8 +2,8 @@ package network
 
 import (
 	"context"
- "math"
 	"fmt"
+	"math"
 	"net"
 	"sync"
 	"time"
@@ -22,16 +22,16 @@ type LatencyMonitor struct {
 }
 
 type LatencyMeasurement struct {
-	SourceNode      string
-	TargetNode      string
-	Theoretical     time.Duration
-	Actual          time.Duration
-	Jitter          time.Duration
-	PacketLoss      float64
-	LastMeasured    time.Time
-	Measurements    int
-	Average         time.Duration
-	StdDev          time.Duration
+	SourceNode   string
+	TargetNode   string
+	Theoretical  time.Duration
+	Actual       time.Duration
+	Jitter       time.Duration
+	PacketLoss   float64
+	LastMeasured time.Time
+	Measurements int
+	Average      time.Duration
+	StdDev       time.Duration
 }
 
 func NewLatencyMonitor(topology *TopologyManager, logger *zap.Logger) *LatencyMonitor {
@@ -130,17 +130,17 @@ func (lm *LatencyMonitor) pingNode(address string) (time.Duration, time.Duration
 
 	for i := 0; i < attempts; i++ {
 		start := time.Now()
-		
+
 		conn, err := net.DialTimeout("tcp", address, 5*time.Second)
 		if err != nil {
 			continue
 		}
 		conn.Close()
-		
+
 		latency := time.Since(start)
 		latencies = append(latencies, latency)
 		successful++
-		
+
 		time.Sleep(100 * time.Millisecond)
 	}
 
@@ -176,12 +176,12 @@ func (lm *LatencyMonitor) calculateTheoreticalLatency(nodeA, nodeB *types.Node) 
 func (lm *LatencyMonitor) calculateDistance(pos1, pos2 types.Position) float64 {
 	latDiff := pos1.Latitude - pos2.Latitude
 	lonDiff := pos1.Longitude - pos2.Longitude
-	return math.Sqrt(latDiff*latDiff + lonDiff*lonDiff) * 111000
+	return math.Sqrt(latDiff*latDiff+lonDiff*lonDiff) * 111000
 }
 
 func (lm *LatencyMonitor) GetMeasurement(source, target string) *LatencyMeasurement {
 	key := fmt.Sprintf("%s-%s", source, target)
-	
+
 	lm.mu.RLock()
 	defer lm.mu.RUnlock()
 
@@ -201,7 +201,7 @@ func (lm *LatencyMonitor) GetAllMeasurements() map[string]*LatencyMeasurement {
 
 func (lm *LatencyMonitor) GetNetworkHealth() *NetworkHealth {
 	measurements := lm.GetAllMeasurements()
-	
+
 	health := &NetworkHealth{
 		TotalMeasurements: len(measurements),
 		Timestamp:         time.Now().UTC(),
@@ -245,14 +245,14 @@ func (lm *LatencyMonitor) GetNetworkHealth() *NetworkHealth {
 }
 
 type NetworkHealth struct {
-	Status              string
-	TotalMeasurements   int
-	AverageLatency      time.Duration
-	AverageJitter       time.Duration
-	AveragePacketLoss   float64
-	HealthyConnections  int
-	ConnectionHealth    float64
-	Timestamp           time.Time
+	Status             string
+	TotalMeasurements  int
+	AverageLatency     time.Duration
+	AverageJitter      time.Duration
+	AveragePacketLoss  float64
+	HealthyConnections int
+	ConnectionHealth   float64
+	Timestamp          time.Time
 }
 
 func (lm *LatencyMonitor) Stop() {

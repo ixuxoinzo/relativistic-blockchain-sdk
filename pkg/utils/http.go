@@ -168,13 +168,13 @@ func NewRetryableHTTPClient(timeout time.Duration, maxRetries int, backoff time.
 
 func (rhc *RetryableHTTPClient) DoWithRetry(req *HTTPRequest) (*HTTPResponse, error) {
 	var lastErr error
-	
+
 	for i := 0; i <= rhc.MaxRetries; i++ {
 		resp, err := rhc.Do(req)
 		if err == nil && resp.IsSuccess() {
 			return resp, nil
 		}
-		
+
 		if err != nil {
 			lastErr = err
 		} else if resp.IsServerError() {
@@ -182,11 +182,11 @@ func (rhc *RetryableHTTPClient) DoWithRetry(req *HTTPRequest) (*HTTPResponse, er
 		} else {
 			return resp, nil
 		}
-		
+
 		if i < rhc.MaxRetries {
 			time.Sleep(rhc.Backoff * time.Duration(i+1))
 		}
 	}
-	
+
 	return nil, fmt.Errorf("max retries exceeded: %w", lastErr)
 }

@@ -34,7 +34,7 @@ func (rc *RelativisticCalculator) ApplyTimeDilation(delay float64, velocity floa
 	if velocity == 0 {
 		return delay
 	}
-	
+
 	lorentzFactor := rc.CalculateLorentzFactor(velocity)
 	return delay * lorentzFactor
 }
@@ -43,10 +43,10 @@ func (rc *RelativisticCalculator) CalculateLorentzFactor(velocity float64) float
 	if velocity >= types.SpeedOfLight {
 		return math.Inf(1)
 	}
-	
+
 	v2 := velocity * velocity
 	c2 := types.SpeedOfLight * types.SpeedOfLight
-	return 1.0 / math.Sqrt(1.0 - v2/c2)
+	return 1.0 / math.Sqrt(1.0-v2/c2)
 }
 
 func (rc *RelativisticCalculator) CalculateGravitationalTimeDilation(gravityFieldStrength, height float64) float64 {
@@ -62,20 +62,20 @@ func (rc *RelativisticCalculator) CalculateGravitationalTimeDilation(gravityFiel
 func (rc *RelativisticCalculator) CalculateCombinedEffects(distance, velocity, gravityFieldStrength, height float64, networkFactor float64) time.Duration {
 	lightDelay := distance / types.SpeedOfLight
 	networkDelay := lightDelay * networkFactor
-	
+
 	lorentzFactor := rc.CalculateLorentzFactor(velocity)
 	gravitationalFactor := rc.CalculateGravitationalTimeDilation(gravityFieldStrength, height)
-	
+
 	totalDelay := networkDelay * lorentzFactor * gravitationalFactor
 	return time.Duration(totalDelay * float64(time.Second))
 }
 
 func (rc *RelativisticCalculator) CalculateSatelliteDelay(satellitePos, groundStationPos types.Position, satelliteVelocity float64) (time.Duration, error) {
 	distance := rc.CalculateDistance(satellitePos, groundStationPos)
-	
+
 	lightDelay := distance / types.SpeedOfLight
 	relativisticDelay := rc.ApplyTimeDilation(lightDelay, satelliteVelocity)
-	
+
 	totalDelay := relativisticDelay * 1.01
 
 	return time.Duration(totalDelay * float64(time.Second)), nil
@@ -93,7 +93,7 @@ func (rc *RelativisticCalculator) CalculateDistance(pos1, pos2 types.Position) f
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
 		math.Cos(lat1)*math.Cos(lat2)*
 			math.Sin(dLon/2)*math.Sin(dLon/2)
-	
+
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	distance := types.EarthRadius * c
 

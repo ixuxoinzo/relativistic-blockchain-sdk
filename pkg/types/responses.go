@@ -1,4 +1,3 @@
-
 package types
 
 import "time"
@@ -51,7 +50,7 @@ type ValidationResponse struct {
 }
 
 type PropagationResponse struct {
-	Source  string                       `json:"source"`
+	Source  string                        `json:"source"`
 	Targets map[string]*PropagationResult `json:"targets"`
 }
 

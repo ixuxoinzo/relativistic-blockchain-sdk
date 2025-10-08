@@ -96,7 +96,7 @@ func (cm *CoreManager) cacheCleaner(ctx context.Context) {
 
 func (cm *CoreManager) collectMetrics() {
 	metrics := cm.engine.GetNetworkMetrics()
-	
+
 	cm.logger.Info("Collected network metrics",
 		zap.Int("total_nodes", metrics.TotalNodes),
 		zap.Int("active_nodes", metrics.ActiveNodes),
@@ -134,7 +134,7 @@ func (cm *CoreManager) GetPropagationAnalysis(source, target string) *Propagatio
 	}
 
 	history := cm.engine.propagationManager.GetPropagationHistory(source, target, 100)
-	
+
 	analysis := &PropagationAnalysis{
 		Stats:   stats,
 		History: history,
@@ -156,7 +156,7 @@ func (cm *CoreManager) calculateTrend(history []*PropagationHistory) string {
 	olderCount := min(5, len(history)-recentCount)
 
 	recentAvg := cm.calculateAverageDelay(history[:recentCount])
-	olderAvg := cm.calculateAverageDelay(history[recentCount:recentCount+olderCount])
+	olderAvg := cm.calculateAverageDelay(history[recentCount : recentCount+olderCount])
 
 	threshold := time.Millisecond * 10
 	if recentAvg > olderAvg+threshold {
@@ -237,9 +237,9 @@ func (cm *CoreManager) BatchCalculateOptimalPaths(sources []string, targets []st
 			}
 
 			result := OptimalPathResult{
-				Source:     src,
+				Source:      src,
 				OptimalPath: path,
-				TotalDelay: totalDelay,
+				TotalDelay:  totalDelay,
 				TargetCount: len(path),
 			}
 
